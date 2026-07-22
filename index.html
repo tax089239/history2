@@ -109,9 +109,17 @@ class BootScene extends Phaser.Scene {
 class MenuScene extends Phaser.Scene {
   constructor() { super({ key: 'MenuScene' }); }
 
+  fitImageContain(image, areaWidth, areaHeight) {
+    const texture = image.texture.getSourceImage();
+    const scale = Math.min(areaWidth / texture.width, areaHeight / texture.height);
+    image.setScale(scale);
+    return image;
+  }
+
   create() {
     const { width: w, height: h } = this.scale;
-    this.add.image(w / 2, h / 2, 'frontpage').setDisplaySize(w, h);
+    this.add.rectangle(w / 2, h / 2, w, h, 0x173f46);
+    this.fitImageContain(this.add.image(w / 2, h / 2, 'frontpage'), w, h);
 
     const gearZone = this.add.zone(w * 0.043, h * 0.065, 95, 95)
       .setInteractive({ useHandCursor: true });
@@ -130,23 +138,26 @@ class MenuScene extends Phaser.Scene {
     this.instructionLayer = this.add.container(0, 0).setDepth(100);
 
     const shade = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.42).setInteractive();
-    const page = this.add.image(w / 2, h / 2, 'instructions').setDisplaySize(w, h);
+    const page = this.fitImageContain(this.add.image(w / 2, h / 2, 'instructions'), w, h);
+    const gearZone = this.add.zone(w * 0.043, h * 0.065, 95, 95)
+      .setInteractive({ useHandCursor: true });
     const startZone = this.add.zone(w / 2, h * 0.86, w * 0.38, h * 0.16)
       .setInteractive({ useHandCursor: true });
     const closeZone = this.add.zone(w * 0.686, h * 0.352, 90, 90)
       .setInteractive({ useHandCursor: true });
 
+    gearZone.on('pointerdown', () => this.openPasswordPanel());
     startZone.on('pointerdown', () => this.startGame());
     closeZone.on('pointerdown', () => {
       this.instructionLayer.destroy(true);
       this.instructionLayer = null;
     });
 
-    this.instructionLayer.add([shade, page, startZone, closeZone]);
+    this.instructionLayer.add([shade, page, gearZone, startZone, closeZone]);
   }
 
   openPasswordPanel() {
-    if (this.adminLayer || this.instructionLayer) return;
+    if (this.adminLayer) return;
     const { width: w, height: h } = this.scale;
     this.adminLayer = this.add.container(0, 0).setDepth(200);
 
