@@ -4,13 +4,15 @@ class MapScene extends Phaser.Scene {
   create(){
     const {width:w,height:h}=this.scale;
     this.w=w; this.h=h;
-    this.cols=17; this.rows=9; this.cell=58;
+    this.cols=11; this.rows=7; this.cell=72;
     this.offsetX=(w-this.cols*this.cell)/2;
-    this.offsetY=128;
+    this.offsetY=150;
+    this.questionOpening=false;
     this.cameras.main.fadeIn(250,12,40,45);
 
     this.drawBackground();
     this.maze=this.generateMaze(this.cols,this.rows);
+    this.makeMazeEasier();
     this.drawMaze();
 
     const start=this.cellCenter(0,this.rows-1);
@@ -33,12 +35,13 @@ class MapScene extends Phaser.Scene {
 
     this.player=this.physics.add.sprite(start.x,start.y,'player').setScale(.82).setDepth(10);
     this.player.setCollideWorldBounds(true);
-    this.player.body.setSize(38,38).setOffset(13,20);
+    this.player.body.setSize(36,36).setOffset(14,21);
 
     this.cursors=this.input.keyboard.createCursorKeys();
-    this.wasd=this.input.keyboard.addKeys({up:Phaser.Input.Keyboard.KeyCodes.W,down:Phaser.Input.Keyboard.KeyCodes.S,left:Phaser.Input.Keyboard.KeyCodes.A,right:Phaser.Input.Keyboard.KeyCodes.D,space:Phaser.Input.Keyboard.KeyCodes.SPACE});
+    this.wasd=this.input.keyboard.addKeys({up:Phaser.Input.Keyboard.KeyCodes.W,down:Phaser.Input.Keyboard.KeyCodes.S,left:Phaser.Input.Keyboard.KeyCodes.A,right:Phaser.Input.Keyboard.KeyCodes.D});
 
     this.physics.add.collider(this.player,this.walls);
+    this.physics.add.overlap(this.player,this.npcs,this.handleNpcTouch,null,this);
     this.physics.add.overlap(this.player,this.exit,this.handleExit,null,this);
     this.createHud();
   }
@@ -47,9 +50,9 @@ class MapScene extends Phaser.Scene {
     const g=this.add.graphics();
     g.fillGradientStyle(0x7ecf74,0x7ecf74,0x4fae6d,0x2f7d50,1);
     g.fillRect(0,0,this.w,this.h);
-    g.fillStyle(0x4ca8c9,.95); g.fillRect(0,this.h-42,this.w,42);
-    for(let i=0;i<70;i++){
-      this.add.circle(Phaser.Math.Between(0,this.w),Phaser.Math.Between(100,this.h-45),Phaser.Math.Between(2,4),Phaser.Utils.Array.GetRandom([0xffffff,0xffe082,0xff8a80]),.7);
+    g.fillStyle(0x4ca8c9,.95); g.fillRect(0,this.h-32,this.w,32);
+    for(let i=0;i<50;i++){
+      this.add.circle(Phaser.Math.Between(0,this.w),Phaser.Math.Between(115,this.h-35),Phaser.Math.Between(2,4),Phaser.Utils.Array.GetRandom([0xffffff,0xffe082,0xff8a80]),.7);
     }
   }
 
@@ -79,9 +82,31 @@ class MapScene extends Phaser.Scene {
     return grid;
   }
 
+  makeMazeEasier(){
+    const candidates=[];
+    for(let r=0;r<this.rows;r++){
+      for(let c=0;c<this.cols;c++){
+        if(c<this.cols-1 && this.maze[r][c].walls.right) candidates.push({c,r,dir:'right'});
+        if(r<this.rows-1 && this.maze[r][c].walls.bottom) candidates.push({c,r,dir:'bottom'});
+      }
+    }
+    Phaser.Utils.Array.Shuffle(candidates);
+    const openings=Math.floor(candidates.length*0.42);
+    candidates.slice(0,openings).forEach(item=>{
+      const cell=this.maze[item.r][item.c];
+      if(item.dir==='right'){
+        cell.walls.right=false;
+        this.maze[item.r][item.c+1].walls.left=false;
+      }else{
+        cell.walls.bottom=false;
+        this.maze[item.r+1][item.c].walls.top=false;
+      }
+    });
+  }
+
   drawMaze(){
     this.walls=this.physics.add.staticGroup();
-    const wallThickness=8, wallColor=0x6b4423;
+    const wallThickness=7, wallColor=0x6b4423;
     const floor=this.add.graphics();
     floor.fillStyle(0xf2d19b,.98);
     floor.fillRoundedRect(this.offsetX-5,this.offsetY-5,this.cols*this.cell+10,this.rows*this.cell+10,18);
@@ -116,10 +141,13 @@ class MapScene extends Phaser.Scene {
   }
 
   makeNpc(x,y,texture,id,name,topic,color){
-    const npc=this.npcs.create(x,y,texture).setScale(.78).setDepth(7).setData({id,name,topic});
-    this.tweens.add({targets:npc,y:y-5,duration:850,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+    const npc=this.npcs.create(x,y,texture).setScale(.78).setDepth(7).setData({id,name,topic,busy:false});
+    const tween=this.tweens.add({targets:npc,y:y-5,duration:850,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
     const ring=this.add.circle(x,y,31,color,.18).setStrokeStyle(3,color,.95).setDepth(6);
-    this.tweens.add({targets:ring,scale:1.18,alpha:.05,duration:900,yoyo:true,repeat:-1});
+    const ringTween=this.tweens.add({targets:ring,scale:1.18,alpha:.05,duration:900,yoyo:true,repeat:-1});
+    npc.setData('ring',ring);
+    npc.setData('tween',tween);
+    npc.setData('ringTween',ringTween);
     return npc;
   }
 
@@ -130,12 +158,13 @@ class MapScene extends Phaser.Scene {
     this.uiText=this.add.text(38,32,'',{fontFamily:'Microsoft JhengHei',fontSize:'20px',color:'#ffffff',lineSpacing:7}).setDepth(51);
     this.updateBadgeUI();
 
-    const title=this.add.text(this.w/2,48,'簡易迷宮・尋找三個租稅關卡',{fontFamily:'Microsoft JhengHei',fontSize:'25px',color:'#fff4bf',fontStyle:'bold',stroke:'#4b321d',strokeThickness:5}).setOrigin(.5).setDepth(51);
-    this.promptText=this.add.text(this.w/2,this.h-23,'方向鍵 / WASD 移動；靠近守護者按空白鍵',{fontFamily:'Microsoft JhengHei',fontSize:'18px',color:'#ffffff',fontStyle:'bold',backgroundColor:'rgba(16,52,59,.9)',padding:{x:18,y:8}}).setOrigin(.5).setDepth(51);
+    this.add.text(this.w/2,48,'小朋友簡易迷宮・尋找三個租稅關卡',{fontFamily:'Microsoft JhengHei',fontSize:'25px',color:'#fff4bf',fontStyle:'bold',stroke:'#4b321d',strokeThickness:5}).setOrigin(.5).setDepth(51);
+    this.promptText=this.add.text(this.w/2,this.h-19,'方向鍵 / WASD 移動；碰到守護者會自動出題',{fontFamily:'Microsoft JhengHei',fontSize:'18px',color:'#ffffff',fontStyle:'bold',backgroundColor:'rgba(16,52,59,.9)',padding:{x:18,y:7}}).setOrigin(.5).setDepth(51);
   }
 
   update(){
-    const speed=210; this.player.setVelocity(0);
+    if(!this.player || this.questionOpening) return;
+    const speed=190; this.player.setVelocity(0);
     const left=this.cursors.left.isDown||this.wasd.left.isDown;
     const right=this.cursors.right.isDown||this.wasd.right.isDown;
     const up=this.cursors.up.isDown||this.wasd.up.isDown;
@@ -143,21 +172,37 @@ class MapScene extends Phaser.Scene {
     if(left) this.player.setVelocityX(-speed); else if(right) this.player.setVelocityX(speed);
     if(up) this.player.setVelocityY(-speed); else if(down) this.player.setVelocityY(speed);
     if(this.player.body.velocity.length()>0) this.player.body.velocity.normalize().scale(speed);
-
-    let near=null;
-    this.npcs.getChildren().forEach(npc=>{ if(Phaser.Math.Distance.BetweenPoints(this.player,npc)<54) near=npc; });
-    if(near){
-      const done=this.game.gameState.badges[near.getData('id')];
-      this.promptText.setText(done?`✅ ${near.getData('name')}：這關已完成！`:`按空白鍵挑戰 ${near.getData('name')}：${near.getData('topic')}`);
-      if(!done&&(Phaser.Input.Keyboard.JustDown(this.cursors.space)||Phaser.Input.Keyboard.JustDown(this.wasd.space))) this.openQuestion(near);
-    }else this.promptText.setText('方向鍵 / WASD 移動；找到三位守護者，最後走到右上角終點');
   }
 
-  openQuestion(npc){
+  handleNpcTouch(player,npc){
     const id=npc.getData('id');
-    if(this.game.gameState.badges[id]) return;
+    if(this.questionOpening || npc.getData('busy') || this.game.gameState.badges[id]) return;
+    npc.setData('busy',true);
+    this.questionOpening=true;
+    this.player.setVelocity(0);
     this.scene.pause();
     this.scene.launch('QuestionScene',{npcId:id,npcName:npc.getData('name')});
+  }
+
+  completeNpc(id){
+    const npc=this.npcs.getChildren().find(item=>item.getData('id')===id);
+    if(npc){
+      const ring=npc.getData('ring');
+      const tween=npc.getData('tween');
+      const ringTween=npc.getData('ringTween');
+      if(tween) tween.stop();
+      if(ringTween) ringTween.stop();
+      if(ring) ring.destroy();
+      npc.destroy();
+    }
+    this.questionOpening=false;
+    this.updateBadgeUI();
+  }
+
+  cancelNpcQuestion(id){
+    const npc=this.npcs.getChildren().find(item=>item.getData('id')===id);
+    if(npc) npc.setData('busy',false);
+    this.questionOpening=false;
   }
 
   updateBadgeUI(){
@@ -166,15 +211,16 @@ class MapScene extends Phaser.Scene {
   }
 
   handleExit(){
-    if(this.exitLocked) return;
+    if(this.exitLocked || this.questionOpening) return;
     const b=this.game.gameState.badges;
     if(b.elder&&b.baby&&b.cloud){
       this.exitLocked=true;
       this.player.setVelocity(0);
+      this.game.finishSession();
       this.scene.start('EndScene');
     }else{
       this.exitLocked=true;
-      this.promptText.setText('🔒 終點尚未開啟：請先完成迷宮中的三個關卡！');
+      this.promptText.setText('🔒 請先找到並完成三個租稅關卡！');
       this.cameras.main.shake(160,.004);
       this.time.delayedCall(650,()=>{this.exitLocked=false;});
     }

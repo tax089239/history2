@@ -16,6 +16,6 @@ class EndScene extends Phaser.Scene {
     this.add.text(w/2,h*.67,'📜 認識發票　　🍍 了解稅金　　☁️ 學會載具',{fontFamily:'Microsoft JhengHei',fontSize:'23px',color:'#ffffff'}).setOrigin(.5);
     const btn=this.add.text(w/2,h*.79,'再玩一次  ↻',{fontFamily:'Microsoft JhengHei',fontSize:'25px',color:'#263238',fontStyle:'bold',backgroundColor:'#ffd166',padding:{x:38,y:16}}).setOrigin(.5).setInteractive({useHandCursor:true});
     btn.on('pointerover',()=>btn.setScale(1.05)); btn.on('pointerout',()=>btn.setScale(1));
-    btn.on('pointerdown',()=>{this.game.gameState.badges={elder:false,baby:false,cloud:false}; this.scene.start('MenuScene');});
+    btn.on('pointerdown',()=>{this.game.gameState.badges={elder:false,baby:false,cloud:false}; this.game.gameState.currentSession=null; this.scene.start('MenuScene');});
   }
 }

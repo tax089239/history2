@@ -2,9 +2,9 @@ class BootScene extends Phaser.Scene {
   constructor() { super({ key: 'BootScene' }); }
 
   preload() {
-  this.load.image('frontpage', 'frontpage.png');
-  this.load.image('instructions', 'instructions.png');
-}
+    this.load.image('frontpage', 'frontpage.png');
+    this.load.image('instructions', 'instructions.png');
+  }
 
   create() {
     this.createTextures();

@@ -20,7 +20,7 @@ class QuestionScene extends Phaser.Scene {
       box.on('pointerover',()=>{box.setFillStyle(0xfff2bd); box.setStrokeStyle(4,0xffb703);});
       box.on('pointerout',()=>{box.setFillStyle(0xffffff); box.setStrokeStyle(3,0x84b8ad);});
     });
-    this.add.text(w/2,h*.86,'親子一起討論，再選出答案！',{fontFamily:'Microsoft JhengHei',fontSize:'19px',color:'#61777b'}).setOrigin(.5);
+    this.add.text(w/2,h*.86,'碰到關卡就會自動出題，親子一起選答案！',{fontFamily:'Microsoft JhengHei',fontSize:'19px',color:'#61777b'}).setOrigin(.5);
   }
 
   getQuestionData(id){
@@ -32,8 +32,16 @@ class QuestionScene extends Phaser.Scene {
   }
 
   checkAnswer(selected,correct,explanation){
-    if(selected===correct){ this.game.gameState.badges[this.npcId]=true; this.showResult(true,'答對了！','親子合作成功，獲得一枚徽章！',explanation); }
-    else this.showResult(false,'再想一想','這個答案還不對，再討論一次吧！','');
+    if(this.resultShown) return;
+    this.resultShown=true;
+    const success=selected===correct;
+    this.game.recordAnswer(this.npcId,success);
+    if(success){
+      this.game.gameState.badges[this.npcId]=true;
+      this.showResult(true,'答對了！','這個關卡完成，守護者將從迷宮消失！',explanation);
+    } else {
+      this.showResult(false,'再想一想','這個答案還不對，再討論一次吧！','');
+    }
   }
 
   showResult(success,title,subtitle,explanation){
@@ -44,10 +52,16 @@ class QuestionScene extends Phaser.Scene {
     this.add.text(w/2,h*.43,title,{fontFamily:'Microsoft JhengHei',fontSize:'36px',color:'#27454a',fontStyle:'bold'}).setOrigin(.5).setDepth(22);
     this.add.text(w/2,h*.51,subtitle,{fontFamily:'Microsoft JhengHei',fontSize:'22px',color:'#4b6266'}).setOrigin(.5).setDepth(22);
     if(explanation) this.add.text(w/2,h*.585,explanation,{fontFamily:'Microsoft JhengHei',fontSize:'19px',color:'#4b6266',align:'center',wordWrap:{width:w*.36}}).setOrigin(.5).setDepth(22);
-    const btn=this.add.text(w/2,h*.68,success?'回到地圖':'重新作答',{fontFamily:'Microsoft JhengHei',fontSize:'23px',color:'#263238',fontStyle:'bold',backgroundColor:success?'#ffd166':'#ffb5c0',padding:{x:32,y:14}}).setOrigin(.5).setDepth(22).setInteractive({useHandCursor:true});
+    const btn=this.add.text(w/2,h*.68,success?'繼續走迷宮':'重新作答',{fontFamily:'Microsoft JhengHei',fontSize:'23px',color:'#263238',fontStyle:'bold',backgroundColor:success?'#ffd166':'#ffb5c0',padding:{x:32,y:14}}).setOrigin(.5).setDepth(22).setInteractive({useHandCursor:true});
     btn.on('pointerdown',()=>{
-      if(success){ const map=this.scene.get('MapScene'); map.updateBadgeUI(); this.scene.stop(); this.scene.resume('MapScene'); }
-      else this.scene.restart({npcId:this.npcId,npcName:this.npcName});
+      const map=this.scene.get('MapScene');
+      if(success){
+        map.completeNpc(this.npcId);
+        this.scene.stop();
+        this.scene.resume('MapScene');
+      } else {
+        this.scene.restart({npcId:this.npcId,npcName:this.npcName});
+      }
     });
   }
 }
