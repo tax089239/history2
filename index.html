@@ -7,28 +7,39 @@
   <title>史前稅務神殿大冒險</title>
 
   <style>
-* { box-sizing: border-box; }
-html, body { width: 100%; height: 100%; margin: 0; }
+* {
+  box-sizing: border-box;
+}
+
+html,
 body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
   background: #0d2f35;
   font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
 }
+
+body {
+  position: fixed;
+  inset: 0;
+}
+
 #game-container {
+  position: fixed;
+  inset: 0;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
   background: #173f46;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
+
 #game-container canvas {
   display: block;
-  max-width: 100vw;
-  max-height: 100vh;
-  width: auto !important;
-  height: auto !important;
+  width: 100% !important;
+  height: 100% !important;
   touch-action: none;
 }
 
@@ -106,202 +117,40 @@ class BootScene extends Phaser.Scene {
 
 
     // ===== scenesMenuScene.js =====
-class MenuScene extends Phaser.Scene {
-  constructor() { super({ key: 'MenuScene' }); }
+* {
+  box-sizing: border-box;
+}
 
-  fitImageContain(image, areaWidth, areaHeight) {
-    const texture = image.texture.getSourceImage();
-    const scale = Math.min(areaWidth / texture.width, areaHeight / texture.height);
-    image.setScale(scale);
-    return image;
-  }
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #0d2f35;
+  font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+}
 
-  create() {
-    const { width: w, height: h } = this.scale;
-    this.add.rectangle(w / 2, h / 2, w, h, 0x173f46);
-    this.fitImageContain(this.add.image(w / 2, h / 2, 'frontpage'), w, h);
+body {
+  position: fixed;
+  inset: 0;
+}
 
-    const gearZone = this.add.zone(w * 0.043, h * 0.065, 95, 95)
-      .setInteractive({ useHandCursor: true });
-    gearZone.on('pointerdown', () => this.openPasswordPanel());
+#game-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #173f46;
+}
 
-    const startZone = this.add.zone(w / 2, h * 0.855, w * 0.37, h * 0.16)
-      .setInteractive({ useHandCursor: true });
-    startZone.on('pointerdown', () => this.showInstructions());
-
-    this.input.keyboard.once('keydown-ENTER', () => this.showInstructions());
-  }
-
-  showInstructions() {
-    if (this.instructionLayer || this.adminLayer) return;
-    const { width: w, height: h } = this.scale;
-    this.instructionLayer = this.add.container(0, 0).setDepth(100);
-
-    const shade = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.42).setInteractive();
-    const page = this.fitImageContain(this.add.image(w / 2, h / 2, 'instructions'), w, h);
-    const gearZone = this.add.zone(w * 0.043, h * 0.065, 95, 95)
-      .setInteractive({ useHandCursor: true });
-    const startZone = this.add.zone(w / 2, h * 0.86, w * 0.38, h * 0.16)
-      .setInteractive({ useHandCursor: true });
-    const closeZone = this.add.zone(w * 0.686, h * 0.352, 90, 90)
-      .setInteractive({ useHandCursor: true });
-
-    gearZone.on('pointerdown', () => this.openPasswordPanel());
-    startZone.on('pointerdown', () => this.startGame());
-    closeZone.on('pointerdown', () => {
-      this.instructionLayer.destroy(true);
-      this.instructionLayer = null;
-    });
-
-    this.instructionLayer.add([shade, page, gearZone, startZone, closeZone]);
-  }
-
-  openPasswordPanel() {
-    if (this.adminLayer) return;
-    const { width: w, height: h } = this.scale;
-    this.adminLayer = this.add.container(0, 0).setDepth(200);
-
-    const shade = this.add.rectangle(w / 2, h / 2, w, h, 0x071a20, 0.76).setInteractive();
-    const card = this.add.graphics();
-    card.fillStyle(0xfffbef, 1);
-    card.fillRoundedRect(w * 0.31, h * 0.22, w * 0.38, h * 0.52, 30);
-    card.lineStyle(5, 0xffb703, 1);
-    card.strokeRoundedRect(w * 0.31, h * 0.22, w * 0.38, h * 0.52, 30);
-
-    const title = this.add.text(w / 2, h * 0.30, '後台管理登入', {
-      fontFamily: 'Microsoft JhengHei', fontSize: '34px', color: '#27454a', fontStyle: 'bold'
-    }).setOrigin(0.5);
-
-    const hint = this.add.text(w / 2, h * 0.39, '請輸入 6 位數密碼', {
-      fontFamily: 'Microsoft JhengHei', fontSize: '22px', color: '#5d7074'
-    }).setOrigin(0.5);
-
-    const displayBox = this.add.rectangle(w / 2, h * 0.49, 300, 68, 0xffffff, 1).setStrokeStyle(3, 0x84b8ad);
-    const display = this.add.text(w / 2, h * 0.49, '', {
-      fontFamily: 'Microsoft JhengHei', fontSize: '34px', color: '#263b40', letterSpacing: 10
-    }).setOrigin(0.5);
-
-    let password = '';
-    const updateDisplay = () => display.setText('●'.repeat(password.length));
-    const keyHandler = event => {
-      if (/^[0-9]$/.test(event.key) && password.length < 6) {
-        password += event.key;
-        updateDisplay();
-      } else if (event.key === 'Backspace') {
-        password = password.slice(0, -1);
-        updateDisplay();
-      } else if (event.key === 'Enter') {
-        submit();
-      } else if (event.key === 'Escape') {
-        close();
-      }
-    };
-
-    const message = this.add.text(w / 2, h * 0.57, '', {
-      fontFamily: 'Microsoft JhengHei', fontSize: '19px', color: '#d64545', fontStyle: 'bold'
-    }).setOrigin(0.5);
-
-    const submitButton = this.makeButton(w / 2 - 100, h * 0.66, 180, 58, '登入', 0xffd166, () => submit());
-    const closeButton = this.makeButton(w / 2 + 100, h * 0.66, 180, 58, '取消', 0xdfe8e8, () => close());
-
-    const submit = () => {
-      if (password === '231600') {
-        window.removeEventListener('keydown', keyHandler);
-        this.adminLayer.destroy(true);
-        this.adminLayer = null;
-        this.showAdminDashboard();
-      } else {
-        message.setText('密碼錯誤，請重新輸入');
-        password = '';
-        updateDisplay();
-      }
-    };
-
-    const close = () => {
-      window.removeEventListener('keydown', keyHandler);
-      this.adminLayer.destroy(true);
-      this.adminLayer = null;
-    };
-
-    window.addEventListener('keydown', keyHandler);
-    this.adminLayer.add([shade, card, title, hint, displayBox, display, message, ...submitButton, ...closeButton]);
-  }
-
-  showAdminDashboard() {
-    const { width: w, height: h } = this.scale;
-    this.adminLayer = this.add.container(0, 0).setDepth(210);
-    const stats = this.game.getStats();
-    const answered = stats.sessions.filter(s => s.firstAnsweredAt).length;
-    const completed = stats.sessions.filter(s => s.completed).length;
-    const attempts = stats.sessions.reduce((sum, s) => sum + (s.attempts || 0), 0);
-
-    const shade = this.add.rectangle(w / 2, h / 2, w, h, 0x071a20, 0.80).setInteractive();
-    const card = this.add.graphics();
-    card.fillStyle(0xfffbef, 1);
-    card.fillRoundedRect(w * 0.19, h * 0.11, w * 0.62, h * 0.78, 34);
-    card.lineStyle(5, 0xffb703, 1);
-    card.strokeRoundedRect(w * 0.19, h * 0.11, w * 0.62, h * 0.78, 34);
-
-    const title = this.add.text(w / 2, h * 0.18, '後台管理設定', {
-      fontFamily: 'Microsoft JhengHei', fontSize: '38px', color: '#27454a', fontStyle: 'bold'
-    }).setOrigin(0.5);
-
-    const cards = [
-      ['答題人數', answered, w * 0.34],
-      ['完成闖關', completed, w * 0.50],
-      ['總作答次數', attempts, w * 0.66]
-    ];
-    const items = [];
-    cards.forEach(([label, value, x]) => {
-      const box = this.add.rectangle(x, h * 0.38, 180, 130, 0xffffff, 1).setStrokeStyle(3, 0x84b8ad);
-      const num = this.add.text(x, h * 0.35, String(value), {
-        fontFamily: 'Microsoft JhengHei', fontSize: '42px', color: '#e46a1a', fontStyle: 'bold'
-      }).setOrigin(0.5);
-      const txt = this.add.text(x, h * 0.43, label, {
-        fontFamily: 'Microsoft JhengHei', fontSize: '20px', color: '#425b60', fontStyle: 'bold'
-      }).setOrigin(0.5);
-      items.push(box, num, txt);
-    });
-
-    const note = this.add.text(w / 2, h * 0.55,
-      '統計資料儲存在目前使用的瀏覽器中\n適合在同一台電腦或平板作為活動闖關機使用', {
-        fontFamily: 'Microsoft JhengHei', fontSize: '20px', color: '#5d7074', align: 'center', lineSpacing: 8
-      }).setOrigin(0.5);
-
-    const exportBtn = this.makeButton(w / 2 - 165, h * 0.70, 280, 66, '匯出 Excel', 0xffd166, () => {
-      const ok = this.game.exportStatsToExcel();
-      status.setText(ok ? 'Excel 已開始下載' : 'Excel 元件尚未載入，請重新整理後再試');
-    });
-    const closeBtn = this.makeButton(w / 2 + 165, h * 0.70, 220, 66, '關閉', 0xdfe8e8, () => {
-      this.adminLayer.destroy(true);
-      this.adminLayer = null;
-    });
-
-    const status = this.add.text(w / 2, h * 0.80, '', {
-      fontFamily: 'Microsoft JhengHei', fontSize: '18px', color: '#2f855a', fontStyle: 'bold'
-    }).setOrigin(0.5);
-
-    this.adminLayer.add([shade, card, title, ...items, note, ...exportBtn, ...closeBtn, status]);
-  }
-
-  makeButton(x, y, width, height, text, color, callback) {
-    const box = this.add.rectangle(x, y, width, height, color, 1)
-      .setStrokeStyle(3, 0x8a6d2f)
-      .setInteractive({ useHandCursor: true });
-    const label = this.add.text(x, y, text, {
-      fontFamily: 'Microsoft JhengHei', fontSize: '23px', color: '#263238', fontStyle: 'bold'
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    box.on('pointerdown', callback);
-    label.on('pointerdown', callback);
-    return [box, label];
-  }
-
-  startGame() {
-    this.game.gameState.badges = { elder: false, baby: false, cloud: false };
-    this.game.startSession();
-    this.cameras.main.fadeOut(250, 18, 50, 58);
-    this.time.delayedCall(250, () => this.scene.start('MapScene'));
-  }
+#game-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
 }
 
 
@@ -492,20 +341,122 @@ class MapScene extends Phaser.Scene {
     this.scene.launch('QuestionScene',{npcId:id,npcName:npc.getData('name')});
   }
 
-  completeNpc(id){
-    const npc=this.npcs.getChildren().find(item=>item.getData('id')===id);
-    if(npc){
-      const ring=npc.getData('ring');
-      const tween=npc.getData('tween');
-      const ringTween=npc.getData('ringTween');
-      if(tween) tween.stop();
-      if(ringTween) ringTween.stop();
-      if(ring) ring.destroy();
+ completeNpc(id) {
+  const npc = this.npcs
+    .getChildren()
+    .find(
+      item =>
+        item.getData('id') === id
+    );
+
+  this.questionOpening = false;
+  this.updateBadgeUI();
+
+  if (!npc) {
+    return;
+  }
+
+  const ring =
+    npc.getData('ring');
+
+  const floatTween =
+    npc.getData('tween');
+
+  const ringTween =
+    npc.getData('ringTween');
+
+  if (floatTween) {
+    floatTween.stop();
+  }
+
+  if (ringTween) {
+    ringTween.stop();
+  }
+
+  /*
+   * 關閉 NPC 的碰撞，
+   * 避免動畫期間再次觸發題目。
+   */
+  if (npc.body) {
+    npc.body.enable = false;
+  }
+
+  /*
+   * 產生答對後的星光粒子。
+   */
+  for (let index = 0; index < 16; index++) {
+    const star = this.add.text(
+      npc.x,
+      npc.y,
+      index % 3 === 0 ? '⭐' : '✨',
+      {
+        fontSize: `${Phaser.Math.Between(
+          18,
+          30
+        )}px`
+      }
+    )
+      .setOrigin(0.5)
+      .setDepth(30);
+
+    const angle =
+      Math.PI * 2 * index / 16;
+
+    const distance =
+      Phaser.Math.Between(55, 105);
+
+    this.tweens.add({
+      targets: star,
+      x:
+        npc.x +
+        Math.cos(angle) * distance,
+      y:
+        npc.y +
+        Math.sin(angle) * distance,
+      alpha: 0,
+      scale: 1.5,
+      duration:
+        Phaser.Math.Between(
+          650,
+          950
+        ),
+      ease: 'Cubic.Out',
+      onComplete: () => {
+        star.destroy();
+      }
+    });
+  }
+
+  this.tweens.add({
+    targets: npc,
+    scale: 1.35,
+    angle: 180,
+    alpha: 0,
+    duration: 650,
+    ease: 'Back.In',
+    onComplete: () => {
+      if (ring) {
+        ring.destroy();
+      }
+
       npc.destroy();
     }
-    this.questionOpening=false;
-    this.updateBadgeUI();
+  });
+
+  if (ring) {
+    this.tweens.add({
+      targets: ring,
+      scale: 2,
+      alpha: 0,
+      duration: 600,
+      onComplete: () => {
+        if (ring.active) {
+          ring.destroy();
+        }
+      }
+    });
   }
+}
 
   cancelNpcQuestion(id){
     const npc=this.npcs.getChildren().find(item=>item.getData('id')===id);
@@ -583,25 +534,218 @@ class QuestionScene extends Phaser.Scene {
     }
   }
 
-  showResult(success,title,subtitle,explanation){
-    const w=this.w,h=this.h;
-    this.add.rectangle(w/2,h/2,w,h,0x071a20,.82).setDepth(20).setInteractive();
-    const card=this.add.graphics().setDepth(21); card.fillStyle(success?0xeafaf0:0xfff0f0,1); card.fillRoundedRect(w*.27,h*.24,w*.46,h*.5,32); card.lineStyle(5,success?0x4caf78:0xef7c8e,1); card.strokeRoundedRect(w*.27,h*.24,w*.46,h*.5,32);
-    this.add.text(w/2,h*.33,success?'🎉':'💡',{fontSize:'62px'}).setOrigin(.5).setDepth(22);
-    this.add.text(w/2,h*.43,title,{fontFamily:'Microsoft JhengHei',fontSize:'36px',color:'#27454a',fontStyle:'bold'}).setOrigin(.5).setDepth(22);
-    this.add.text(w/2,h*.51,subtitle,{fontFamily:'Microsoft JhengHei',fontSize:'22px',color:'#4b6266'}).setOrigin(.5).setDepth(22);
-    if(explanation) this.add.text(w/2,h*.585,explanation,{fontFamily:'Microsoft JhengHei',fontSize:'19px',color:'#4b6266',align:'center',wordWrap:{width:w*.36}}).setOrigin(.5).setDepth(22);
-    const btn=this.add.text(w/2,h*.68,success?'繼續走迷宮':'重新作答',{fontFamily:'Microsoft JhengHei',fontSize:'23px',color:'#263238',fontStyle:'bold',backgroundColor:success?'#ffd166':'#ffb5c0',padding:{x:32,y:14}}).setOrigin(.5).setDepth(22).setInteractive({useHandCursor:true});
-    btn.on('pointerdown',()=>{
-      const map=this.scene.get('MapScene');
-      if(success){
-        map.completeNpc(this.npcId);
+  showResult(
+  success,
+  title,
+  subtitle,
+  explanation
+) {
+  const w = this.w;
+  const h = this.h;
+
+  this.add.rectangle(
+    w / 2,
+    h / 2,
+    w,
+    h,
+    0x071a20,
+    0.84
+  )
+    .setDepth(20)
+    .setInteractive();
+
+  const cardWidth = Math.min(
+    w * 0.54,
+    700
+  );
+
+  const cardHeight = Math.min(
+    h * 0.56,
+    440
+  );
+
+  const cardX =
+    w / 2 - cardWidth / 2;
+
+  const cardY =
+    h / 2 - cardHeight / 2;
+
+  const card = this.add.graphics()
+    .setDepth(21);
+
+  card.fillStyle(
+    success ? 0xeafaf0 : 0xfff0f0,
+    1
+  );
+
+  card.fillRoundedRect(
+    cardX,
+    cardY,
+    cardWidth,
+    cardHeight,
+    32
+  );
+
+  card.lineStyle(
+    5,
+    success ? 0x4caf78 : 0xef7c8e,
+    1
+  );
+
+  card.strokeRoundedRect(
+    cardX,
+    cardY,
+    cardWidth,
+    cardHeight,
+    32
+  );
+
+  const icon = this.add.text(
+    w / 2,
+    cardY + 75,
+    success ? '🎉' : '💡',
+    {
+      fontSize: '64px'
+    }
+  )
+    .setOrigin(0.5)
+    .setDepth(22)
+    .setScale(0.2);
+
+  this.tweens.add({
+    targets: icon,
+    scale: 1,
+    angle: success ? 360 : 0,
+    duration: 520,
+    ease: 'Back.Out'
+  });
+
+  const titleText = this.add.text(
+    w / 2,
+    cardY + 155,
+    title,
+    {
+      fontFamily: 'Microsoft JhengHei',
+      fontSize: '38px',
+      color: '#27454a',
+      fontStyle: 'bold'
+    }
+  )
+    .setOrigin(0.5)
+    .setDepth(22);
+
+  const subtitleText = this.add.text(
+    w / 2,
+    cardY + 215,
+    subtitle,
+    {
+      fontFamily: 'Microsoft JhengHei',
+      fontSize: '22px',
+      color: '#4b6266',
+      align: 'center',
+      wordWrap: {
+        width: cardWidth * 0.8
+      }
+    }
+  )
+    .setOrigin(0.5)
+    .setDepth(22);
+
+  if (explanation) {
+    this.add.text(
+      w / 2,
+      cardY + 285,
+      explanation,
+      {
+        fontFamily: 'Microsoft JhengHei',
+        fontSize: '19px',
+        color: '#4b6266',
+        align: 'center',
+        wordWrap: {
+          width: cardWidth * 0.78
+        }
+      }
+    )
+      .setOrigin(0.5)
+      .setDepth(22);
+  }
+
+  if (success) {
+    const countdown = this.add.text(
+      w / 2,
+      cardY + cardHeight - 48,
+      '即將繼續冒險…',
+      {
+        fontFamily: 'Microsoft JhengHei',
+        fontSize: '18px',
+        color: '#2f855a',
+        fontStyle: 'bold'
+      }
+    )
+      .setOrigin(0.5)
+      .setDepth(22);
+
+    this.tweens.add({
+      targets: [
+        titleText,
+        subtitleText,
+        countdown
+      ],
+      alpha: {
+        from: 0.45,
+        to: 1
+      },
+      duration: 450,
+      yoyo: true,
+      repeat: 1
+    });
+
+    this.time.delayedCall(
+      1500,
+      () => {
+        const map =
+          this.scene.get('MapScene');
+
+        map.completeNpc(
+          this.npcId
+        );
+
         this.scene.stop();
         this.scene.resume('MapScene');
-      } else {
-        this.scene.restart({npcId:this.npcId,npcName:this.npcName});
       }
-    });
+    );
+  } else {
+    const button = this.add.text(
+      w / 2,
+      cardY + cardHeight - 58,
+      '重新作答',
+      {
+        fontFamily: 'Microsoft JhengHei',
+        fontSize: '23px',
+        color: '#263238',
+        fontStyle: 'bold',
+        backgroundColor: '#ffb5c0',
+        padding: {
+          x: 32,
+          y: 14
+        }
+      }
+    )
+      .setOrigin(0.5)
+      .setDepth(22)
+      .setInteractive({
+        useHandCursor: true
+      });
+
+    button.on(
+      'pointerdown',
+      () => {
+        this.scene.restart({
+          npcId: this.npcId,
+          npcName: this.npcName
+        });
+      }
+    );
   }
 }
 
@@ -634,22 +778,34 @@ class EndScene extends Phaser.Scene {
 const config = {
   type: Phaser.AUTO,
   parent: 'game-container',
-  width: 1280,
-  height: 720,
+  width: window.innerWidth,
+  height: window.innerHeight,
   backgroundColor: '#173f46',
   antialias: true,
   pixelArt: false,
+
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 1280,
-    height: 720
+    width: window.innerWidth,
+    height: window.innerHeight
   },
+
   physics: {
     default: 'arcade',
-    arcade: { gravity: { y: 0 }, debug: false }
+    arcade: {
+      gravity: { y: 0 },
+      debug: false
+    }
   },
-  scene: [BootScene, MenuScene, MapScene, QuestionScene, EndScene]
+
+  scene: [
+    BootScene,
+    MenuScene,
+    MapScene,
+    QuestionScene,
+    EndScene
+  ]
 };
 
 const game = new Phaser.Game(config);
@@ -690,72 +846,326 @@ game.startSession = function () {
   };
 };
 
-game.recordAnswer = function (questionId, isCorrect) {
-  const session = game.gameState.currentSession;
-  if (!session) return;
-  if (!session.firstAnsweredAt) session.firstAnsweredAt = new Date().toISOString();
-  session.attempts += 1;
-  if (isCorrect) {
-    session.correctAnswers += 1;
-    if (!session.answeredQuestions.includes(questionId)) session.answeredQuestions.push(questionId);
-  }
-  const stats = game.getStats();
-  const index = stats.sessions.findIndex(item => item.id === session.id);
-  const snapshot = { ...session };
-  if (index >= 0) stats.sessions[index] = snapshot;
-  else stats.sessions.push(snapshot);
-  game.saveStats(stats);
-};
+game.recordAnswer = function (
+  questionId,
+  isCorrect
+) {
+  const session =
+    game.gameState.currentSession;
 
-game.finishSession = function () {
-  const session = game.gameState.currentSession;
-  if (!session || session.saved) return;
-  session.completed = true;
-  session.completedAt = new Date().toISOString();
-  session.saved = true;
+  if (!session) {
+    return;
+  }
+
+  if (!session.firstAnsweredAt) {
+    session.firstAnsweredAt =
+      new Date().toISOString();
+  }
+
+  session.attempts += 1;
+
+  if (!session.questionResults) {
+    session.questionResults = {};
+  }
+
+  if (!session.questionResults[questionId]) {
+    session.questionResults[questionId] = {
+      attempts: 0,
+      correct: false
+    };
+  }
+
+  session.questionResults[
+    questionId
+  ].attempts += 1;
+
+  if (isCorrect) {
+    session.questionResults[
+      questionId
+    ].correct = true;
+
+    session.correctAnswers += 1;
+
+    if (
+      !session.answeredQuestions.includes(
+        questionId
+      )
+    ) {
+      session.answeredQuestions.push(
+        questionId
+      );
+    }
+  }
+
   const stats = game.getStats();
-  const index = stats.sessions.findIndex(item => item.id === session.id);
-  const snapshot = { ...session };
-  if (index >= 0) stats.sessions[index] = snapshot;
-  else stats.sessions.push(snapshot);
+
+  const index = stats.sessions.findIndex(
+    item => item.id === session.id
+  );
+
+  const snapshot =
+    JSON.parse(JSON.stringify(session));
+
+  if (index >= 0) {
+    stats.sessions[index] = snapshot;
+  } else {
+    stats.sessions.push(snapshot);
+  }
+
   game.saveStats(stats);
 };
 
 game.exportStatsToExcel = function () {
   const stats = game.getStats();
-  const answered = stats.sessions.filter(s => s.firstAnsweredAt).length;
-  const completed = stats.sessions.filter(s => s.completed).length;
-  const attempts = stats.sessions.reduce((sum, s) => sum + (s.attempts || 0), 0);
+  const sessions = stats.sessions || [];
+
+  const answered = sessions.filter(
+    session => session.firstAnsweredAt
+  ).length;
+
+  const completed = sessions.filter(
+    session => session.completed
+  ).length;
+
+  const attempts = sessions.reduce(
+    (sum, session) =>
+      sum + (session.attempts || 0),
+    0
+  );
+
+  const correctAnswers =
+    sessions.reduce(
+      (sum, session) =>
+        sum +
+        (session.correctAnswers || 0),
+      0
+    );
+
+  const accuracy =
+    attempts > 0
+      ? Math.round(
+          correctAnswers / attempts * 100
+        )
+      : 0;
+
+  const getDurationSeconds = session => {
+    if (
+      !session.startedAt ||
+      !session.completedAt
+    ) {
+      return '';
+    }
+
+    const start = new Date(
+      session.startedAt
+    ).getTime();
+
+    const end = new Date(
+      session.completedAt
+    ).getTime();
+
+    return Math.max(
+      0,
+      Math.round((end - start) / 1000)
+    );
+  };
 
   const summary = [
-    { 項目: '答題人數', 數值: answered },
-    { 項目: '完成闖關人數', 數值: completed },
-    { 項目: '總作答次數', 數值: attempts },
-    { 項目: '匯出時間', 數值: new Date().toLocaleString('zh-TW') }
+    {
+      項目: '答題人數',
+      數值: answered
+    },
+    {
+      項目: '完成闖關人數',
+      數值: completed
+    },
+    {
+      項目: '總作答次數',
+      數值: attempts
+    },
+    {
+      項目: '整體正確率',
+      數值: `${accuracy}%`
+    },
+    {
+      項目: '匯出時間',
+      數值:
+        new Date().toLocaleString(
+          'zh-TW'
+        )
+    }
   ];
 
-  const records = stats.sessions.map((s, index) => ({
-    編號: index + 1,
-    工作階段ID: s.id,
-    開始時間: s.startedAt ? new Date(s.startedAt).toLocaleString('zh-TW') : '',
-    首次答題時間: s.firstAnsweredAt ? new Date(s.firstAnsweredAt).toLocaleString('zh-TW') : '',
-    完成時間: s.completedAt ? new Date(s.completedAt).toLocaleString('zh-TW') : '',
-    是否完成: s.completed ? '是' : '否',
-    完成關卡數: Array.isArray(s.answeredQuestions) ? s.answeredQuestions.length : 0,
-    答對次數: s.correctAnswers || 0,
-    作答次數: s.attempts || 0
-  }));
+  const records = sessions.map(
+    (session, index) => {
+      const questionResults =
+        session.questionResults || {};
 
-  if (window.XLSX) {
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(summary), '統計摘要');
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(records), '答題紀錄');
-    XLSX.writeFile(workbook, `史前稅遊記_答題統計_${new Date().toISOString().slice(0, 10)}.xlsx`);
-    return true;
+      const elder =
+        questionResults.elder || {};
+
+      const baby =
+        questionResults.baby || {};
+
+      const cloud =
+        questionResults.cloud || {};
+
+      const duration =
+        getDurationSeconds(session);
+
+      return {
+        編號: index + 1,
+
+        姓名或隊伍:
+          session.playerName ||
+          '未填寫',
+
+        開始時間:
+          session.startedAt
+            ? new Date(
+                session.startedAt
+              ).toLocaleString('zh-TW')
+            : '',
+
+        首次答題時間:
+          session.firstAnsweredAt
+            ? new Date(
+                session.firstAnsweredAt
+              ).toLocaleString('zh-TW')
+            : '',
+
+        完成時間:
+          session.completedAt
+            ? new Date(
+                session.completedAt
+              ).toLocaleString('zh-TW')
+            : '',
+
+        花費秒數: duration,
+
+        花費時間:
+          duration === ''
+            ? ''
+            : `${Math.floor(
+                duration / 60
+              )}分${duration % 60}秒`,
+
+        統一發票題作答次數:
+          elder.attempts || 0,
+
+        統一發票題是否答對:
+          elder.correct ? '是' : '否',
+
+        稅金用途題作答次數:
+          baby.attempts || 0,
+
+        稅金用途題是否答對:
+          baby.correct ? '是' : '否',
+
+        雲端發票題作答次數:
+          cloud.attempts || 0,
+
+        雲端發票題是否答對:
+          cloud.correct ? '是' : '否',
+
+        總作答次數:
+          session.attempts || 0,
+
+        答錯次數:
+          Math.max(
+            0,
+            (session.attempts || 0) -
+              (session.correctAnswers || 0)
+          ),
+
+        完成關卡數:
+          Array.isArray(
+            session.answeredQuestions
+          )
+            ? session.answeredQuestions
+                .length
+            : 0,
+
+        是否完成:
+          session.completed
+            ? '是'
+            : '否',
+
+        工作階段ID:
+          session.id || ''
+      };
+    }
+  );
+
+  if (!window.XLSX) {
+    console.error(
+      'Excel 匯出元件尚未載入'
+    );
+
+    return false;
   }
 
-  console.error('Excel 匯出元件尚未載入');
-  return false;
+  const workbook =
+    XLSX.utils.book_new();
+
+  const summarySheet =
+    XLSX.utils.json_to_sheet(
+      summary
+    );
+
+  const recordsSheet =
+    XLSX.utils.json_to_sheet(
+      records
+    );
+
+  summarySheet['!cols'] = [
+    { wch: 22 },
+    { wch: 28 }
+  ];
+
+  recordsSheet['!cols'] = [
+    { wch: 8 },
+    { wch: 18 },
+    { wch: 22 },
+    { wch: 22 },
+    { wch: 22 },
+    { wch: 12 },
+    { wch: 15 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 14 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 28 }
+  ];
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    summarySheet,
+    '統計摘要'
+  );
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    recordsSheet,
+    '答題紀錄'
+  );
+
+  XLSX.writeFile(
+    workbook,
+    `史前稅遊記_答題統計_${
+      new Date()
+        .toISOString()
+        .slice(0, 10)
+    }.xlsx`
+  );
+
+  return true;
 };
 
 window.addEventListener('resize', () => game.scale.refresh());
