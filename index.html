@@ -664,6 +664,10 @@ class QuestionScene extends Phaser.Scene {
     const {width:w,height:h}=this.scale; this.w=w; this.h=h;
     const q=this.getQuestionData(this.npcId,this.questionIndex);
     this.questionIndex=q.questionIndex;
+    // 保存目前題目資料，供答題紀錄與學習分析使用
+    this.currentQuestion=q;
+    // 記錄題目開始顯示的時間
+    this.questionStartedAt=Date.now();
     this.add.rectangle(w/2,h/2,w,h,0x071a20,.78).setInteractive();
 
     const panel=this.add.graphics(); panel.fillStyle(0xfffbef,1); panel.fillRoundedRect(w*.14,h*.08,w*.72,h*.84,34); panel.lineStyle(5,0xffcf5a,1); panel.strokeRoundedRect(w*.14,h*.08,w*.72,h*.84,34);
@@ -767,17 +771,50 @@ class QuestionScene extends Phaser.Scene {
   }
 
   checkAnswer(selected,correct,explanation){
-    if(this.resultShown) return;
-    this.resultShown=true;
-    const success=selected===correct;
-    this.game.recordAnswer(this.npcId,success);
-    if(success){
-      this.game.gameState.badges[this.npcId]=true;
-      this.showResult(true,'答對了！','這個關卡完成，守護者將從迷宮消失！',explanation);
-    } else {
-      this.showResult(false,'再想一想','這個答案還不對，再討論一次吧！','');
+      if(this.resultShown) return;
+      this.resultShown=true;
+      const success=selected===correct;
+      // 玩家選擇的答案文字
+      const selectedAnswer=this.currentQuestion.options[selected];
+      // 正確答案文字
+      const correctAnswer=this.currentQuestion.options[correct];
+      // 計算本次作答時間，單位為秒
+      const responseSeconds=Math.max(
+        1,
+        Math.round((Date.now()-this.questionStartedAt)/1000)
+      );
+      // 儲存完整答題紀錄
+      this.game.recordAnswer({
+        npcId:this.npcId,
+        npcName:this.npcName,
+        questionIndex:this.questionIndex,
+        questionNumber:this.questionIndex+1,
+        question:this.currentQuestion.question,
+        selectedIndex:selected,
+        selectedAnswer:selectedAnswer,
+        correctIndex:correct,
+        correctAnswer:correctAnswer,
+        isCorrect:success,
+        responseSeconds:responseSeconds
+      });
+    
+      if(success){
+        this.game.gameState.badges[this.npcId]=true;
+        this.showResult(
+          true,
+          '答對了！',
+          '這個關卡完成，守護者將從迷宮消失！',
+          explanation
+        );
+      }else{
+        this.showResult(
+          false,
+          '再想一想',
+          '這個答案還不對，再討論一次吧！',
+          ''
+        );
+      }
     }
-  }
 
   showResult(success,title,subtitle,explanation){
     const w=this.w,h=this.h;
@@ -906,6 +943,8 @@ game.startSession = function () {
     firstAnsweredAt: '',
     completedAt: '',
     answeredQuestions: [],
+    // 儲存每一次作答的完整紀錄
+    answerRecords: [],
     correctAnswers: 0,
     attempts: 0,
     completed: false,
@@ -914,26 +953,72 @@ game.startSession = function () {
 
   // 一按「開始遊戲」就先建立並保存新的一輪；即使尚未答題，重新整理後資料仍存在。
   const stats = game.getStats();
-  stats.sessions.push({ ...game.gameState.currentSession });
-  game.saveStats(stats);
-};
-
-game.recordAnswer = function (questionId, isCorrect) {
-  const session = game.gameState.currentSession;
-  if (!session) return;
-  if (!session.firstAnsweredAt) session.firstAnsweredAt = new Date().toISOString();
-  session.attempts += 1;
-  if (isCorrect) {
-    session.correctAnswers += 1;
-    if (!session.answeredQuestions.includes(questionId)) session.answeredQuestions.push(questionId);
-  }
-  const stats = game.getStats();
-  const index = stats.sessions.findIndex(item => item.id === session.id);
-  const snapshot = { ...session };
-  if (index >= 0) stats.sessions[index] = snapshot;
-  else stats.sessions.push(snapshot);
-  game.saveStats(stats);
-};
+    stats.sessions.push({ ...game.gameState.currentSession });
+    game.saveStats(stats);
+  };
+  
+  game.recordAnswer = function (answerData) {
+    const session = game.gameState.currentSession;
+    if (!session) return;
+    // 第一次答題時間
+    if (!session.firstAnsweredAt) {
+      session.firstAnsweredAt = new Date().toISOString();
+    }
+    // 舊資料相容處理
+    if (!Array.isArray(session.answerRecords)) {
+      session.answerRecords = [];
+    }
+    if (!Array.isArray(session.answeredQuestions)) {
+      session.answeredQuestions = [];
+    }
+    session.attempts += 1;
+    // 計算同一位玩家在同一題已經回答幾次
+    const previousAttempts = session.answerRecords.filter(record =>
+      record.npcId === answerData.npcId &&
+      record.questionIndex === answerData.questionIndex
+    ).length;
+    const attemptNumber = previousAttempts + 1;
+    // 判斷是否第一次作答就答對
+    const isFirstAttemptCorrect =
+      attemptNumber === 1 && answerData.isCorrect;
+    // 建立單次作答紀錄
+    const answerRecord = {
+      answeredAt: new Date().toISOString(),
+      npcId: answerData.npcId,
+      npcName: answerData.npcName,
+      questionIndex: answerData.questionIndex,
+      questionNumber: answerData.questionNumber,
+      question: answerData.question,
+      selectedIndex: answerData.selectedIndex,
+      selectedAnswer: answerData.selectedAnswer,
+      correctIndex: answerData.correctIndex,
+      correctAnswer: answerData.correctAnswer,
+      isCorrect: answerData.isCorrect,
+      attemptNumber: attemptNumber,
+      isFirstAttemptCorrect: isFirstAttemptCorrect,
+      responseSeconds: answerData.responseSeconds
+    };
+    session.answerRecords.push(answerRecord);
+    if (answerData.isCorrect) {
+      session.correctAnswers += 1;
+      if (!session.answeredQuestions.includes(answerData.npcId)) {
+        session.answeredQuestions.push(answerData.npcId);
+      }
+    }
+  
+    const stats = game.getStats();
+    const index = stats.sessions.findIndex(
+      item => item.id === session.id
+    );
+    // 深層複製，確保 answerRecords 完整存入 localStorage
+    const snapshot = JSON.parse(JSON.stringify(session));
+    if (index >= 0) {
+      stats.sessions[index] = snapshot;
+    } else {
+      stats.sessions.push(snapshot);
+    }
+    game.saveStats(stats);
+  };
 
 game.finishSession = function () {
   const session = game.gameState.currentSession;
@@ -951,39 +1036,420 @@ game.finishSession = function () {
 
 game.exportStatsToExcel = function () {
   const stats = game.getStats();
-  const answered = stats.sessions.filter(s => s.firstAnsweredAt).length;
-  const completed = stats.sessions.filter(s => s.completed).length;
-  const attempts = stats.sessions.reduce((sum, s) => sum + (s.attempts || 0), 0);
-
+  const totalSessions = stats.sessions.length;
+  const answered = stats.sessions.filter(
+    session => session.firstAnsweredAt
+  ).length;
+  const completed = stats.sessions.filter(
+    session => session.completed
+  ).length;
+  const attempts = stats.sessions.reduce(
+    (sum, session) => sum + (session.attempts || 0),
+    0
+  );
+  const totalCorrect = stats.sessions.reduce(
+    (sum, session) => sum + (session.correctAnswers || 0),
+    0
+  );
+  const completionRate = totalSessions > 0
+    ? `${Math.round((completed / totalSessions) * 100)}%`
+    : '0%';
+  const answerRate = answered > 0
+    ? `${Math.round((completed / answered) * 100)}%`
+    : '0%';
+  // =========================
+  // 工作表1：統計摘要
+  // =========================
   const summary = [
-    { 項目: '答題人數', 數值: answered },
-    { 項目: '完成闖關人數', 數值: completed },
-    { 項目: '總作答次數', 數值: attempts },
-    { 項目: '匯出時間', 數值: new Date().toLocaleString('zh-TW') }
+    { 項目: '開始遊戲人數', 數值: totalSessions },
+    { 項目: '至少作答一題人數',數值: answered },
+    { 項目: '完成三關人數',數值: completed },    
+    { 項目: '完成率（以開始遊戲人數計算）',數值: completionRate },   
+    { 項目: '完成率（以答題人數計算）', 數值: answerRate},
+    { 項目: '總作答次數', 數值: attempts},
+    { 項目: '總答對次數', 數值: totalCorrect },
+    { 項目: '匯出時間', 數值: new Date().toLocaleString('zh-TW')}
   ];
+  // =========================
+  // 工作表2：玩家闖關紀錄
+  // =========================
+  const playerRecords = stats.sessions.map((session, index) => {
+    const startTime = session.startedAt
+      ? new Date(session.startedAt)
+      : null;
+    const completedTime = session.completedAt
+      ? new Date(session.completedAt)
+      : null;
+    let gameSeconds = '';
+    if (startTime && completedTime) {
+      gameSeconds = Math.max(
+        0,
+        Math.round((completedTime - startTime) / 1000)
+      );
+    }
+    const sessionAttempts = session.attempts || 0;
+    const sessionCorrect = session.correctAnswers || 0;
+    const accuracy = sessionAttempts > 0
+      ? `${Math.round((sessionCorrect / sessionAttempts) * 100)}%`
+      : '0%';
+    return {
+      玩家編號: index + 1,
+      工作階段ID: session.id || '',
+      開始時間: session.startedAt
+        ? new Date(session.startedAt).toLocaleString('zh-TW')
+        : '',
+      首次答題時間: session.firstAnsweredAt
+        ? new Date(session.firstAnsweredAt).toLocaleString('zh-TW')
+        : '',
+      完成時間: session.completedAt
+        ? new Date(session.completedAt).toLocaleString('zh-TW')
+        : '',
+      是否開始答題: session.firstAnsweredAt ? '是' : '否',
+      是否完成三關: session.completed ? '是' : '否',
+      完成關卡數: Array.isArray(session.answeredQuestions)
+        ? session.answeredQuestions.length
+        : 0,
+      答對次數: sessionCorrect,
+      作答次數: sessionAttempts,
+      整體答對率: accuracy,
+      完成遊戲秒數: gameSeconds
+    };
+  });
 
-  const records = stats.sessions.map((s, index) => ({
-    編號: index + 1,
-    工作階段ID: s.id,
-    開始時間: s.startedAt ? new Date(s.startedAt).toLocaleString('zh-TW') : '',
-    首次答題時間: s.firstAnsweredAt ? new Date(s.firstAnsweredAt).toLocaleString('zh-TW') : '',
-    完成時間: s.completedAt ? new Date(s.completedAt).toLocaleString('zh-TW') : '',
-    是否完成: s.completed ? '是' : '否',
-    完成關卡數: Array.isArray(s.answeredQuestions) ? s.answeredQuestions.length : 0,
-    答對次數: s.correctAnswers || 0,
-    作答次數: s.attempts || 0
-  }));
+  // =========================
+  // 工作表3：逐題作答紀錄
+  // =========================
+  const allAnswerRecords = [];
+  stats.sessions.forEach((session, sessionIndex) => {
+    const records = Array.isArray(session.answerRecords)
+      ? session.answerRecords
+      : [];
+    records.forEach((record, recordIndex) => {
+      allAnswerRecords.push({
+        玩家編號: sessionIndex + 1,
+        工作階段ID: session.id || '',
+        玩家作答順序: recordIndex + 1,
+        作答時間: record.answeredAt
+          ? new Date(record.answeredAt).toLocaleString('zh-TW')
+          : '',
+        關卡代碼: record.npcId || '',
+        關卡名稱: record.npcName || '',
+        題目編號: record.questionNumber || '',
+        題目內容: record.question || '',
+        玩家選擇代碼:
+          Number.isInteger(record.selectedIndex)
+            ? String.fromCharCode(65 + record.selectedIndex)
+            : '',
+        玩家選擇答案: record.selectedAnswer || '',
+        正確答案代碼:
+          Number.isInteger(record.correctIndex)
+            ? String.fromCharCode(65 + record.correctIndex)
+            : '',
+        正確答案: record.correctAnswer || '',
+        答題結果: record.isCorrect ? '答對' : '答錯',
+        第幾次作答: record.attemptNumber || 1,
+        是否首次作答即答對:
+          record.isFirstAttemptCorrect ? '是' : '否',
+        作答秒數: record.responseSeconds || ''
+      });
+    });
+  });
 
-  if (window.XLSX) {
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(summary), '統計摘要');
-    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(records), '答題紀錄');
-    XLSX.writeFile(workbook, `史前稅遊記_答題統計_${new Date().toISOString().slice(0, 10)}.xlsx`);
-    return true;
+  // =========================
+  // 工作表4：題目分析
+  // =========================
+  const questionMap = {};
+  allAnswerRecords.forEach(record => {
+    const key = `${record.關卡代碼}_${record.題目編號}`;
+    if (!questionMap[key]) {
+      questionMap[key] = {
+        關卡名稱: record.關卡名稱,
+        題目編號: record.題目編號,
+        題目內容: record.題目內容,
+        正確答案: record.正確答案,
+        總作答次數: 0,
+        答對次數: 0,
+        答錯次數: 0,
+        首次作答人次: 0,
+        首次答對人次: 0,
+        總作答秒數: 0,
+        有效時間筆數: 0,
+        錯誤選項統計: {}
+      };
+    }
+
+    const item = questionMap[key];
+    item.總作答次數 += 1;
+    if (record.答題結果 === '答對') {
+      item.答對次數 += 1;
+    } else {
+      item.答錯次數 += 1;
+      const wrongAnswer = record.玩家選擇答案 || '未記錄';
+      item.錯誤選項統計[wrongAnswer] =
+        (item.錯誤選項統計[wrongAnswer] || 0) + 1;
+    }
+    if (record.第幾次作答 === 1) {
+      item.首次作答人次 += 1;
+      if (record.答題結果 === '答對') {
+        item.首次答對人次 += 1;
+      }
+    }
+    const seconds = Number(record.作答秒數);
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      item.總作答秒數 += seconds;
+      item.有效時間筆數 += 1;
+    }
+  });
+
+  const questionAnalysis = Object.values(questionMap).map(item => {
+    const overallAccuracy = item.總作答次數 > 0
+      ? `${Math.round(
+          (item.答對次數 / item.總作答次數) * 100
+        )}%`
+      : '0%';
+
+    const firstAccuracy = item.首次作答人次 > 0
+      ? `${Math.round(
+          (item.首次答對人次 / item.首次作答人次) * 100
+        )}%`
+      : '0%';
+
+    const averageSeconds = item.有效時間筆數 > 0
+      ? Math.round(
+          (item.總作答秒數 / item.有效時間筆數) * 10
+        ) / 10
+      : '';
+
+    const wrongOptions = Object.entries(item.錯誤選項統計)
+      .sort((a, b) => b[1] - a[1]);
+
+    const mostCommonWrongAnswer = wrongOptions.length > 0
+      ? wrongOptions[0][0]
+      : '';
+
+    const mostCommonWrongCount = wrongOptions.length > 0
+      ? wrongOptions[0][1]
+      : 0;
+
+    return {
+      關卡名稱: item.關卡名稱,
+      題目編號: item.題目編號,
+      題目內容: item.題目內容,
+      正確答案: item.正確答案,
+      總作答次數: item.總作答次數,
+      答對次數: item.答對次數,
+      答錯次數: item.答錯次數,
+      整體答對率: overallAccuracy,
+      首次作答人次: item.首次作答人次,
+      首次答對人次: item.首次答對人次,
+      首次答對率: firstAccuracy,
+      平均作答秒數: averageSeconds,
+      最常誤選答案: mostCommonWrongAnswer,
+      最常誤選次數: mostCommonWrongCount
+    };
+  });
+
+  // =========================
+  // 工作表5：各稅目分析
+  // =========================
+  const topicMap = {};
+  allAnswerRecords.forEach(record => {
+    const topic = record.關卡名稱 || '未分類';
+    if (!topicMap[topic]) {
+      topicMap[topic] = {
+        關卡名稱: topic,
+        總作答次數: 0,
+        答對次數: 0,
+        答錯次數: 0,
+        首次作答人次: 0,
+        首次答對人次: 0,
+        總作答秒數: 0,
+        有效時間筆數: 0
+      };
+    }
+
+    const item = topicMap[topic];
+    item.總作答次數 += 1;
+    if (record.答題結果 === '答對') {
+      item.答對次數 += 1;
+    } else {
+      item.答錯次數 += 1;
+    }
+    if (record.第幾次作答 === 1) {
+      item.首次作答人次 += 1;
+      if (record.答題結果 === '答對') {
+        item.首次答對人次 += 1;
+      }
+    }
+
+    const seconds = Number(record.作答秒數);
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      item.總作答秒數 += seconds;
+      item.有效時間筆數 += 1;
+    }
+  });
+
+  const topicAnalysis = Object.values(topicMap).map(item => {
+    const accuracy = item.總作答次數 > 0
+      ? `${Math.round(
+          (item.答對次數 / item.總作答次數) * 100
+        )}%`
+      : '0%';
+
+    const firstAccuracy = item.首次作答人次 > 0
+      ? `${Math.round(
+          (item.首次答對人次 / item.首次作答人次) * 100
+        )}%`
+      : '0%';
+
+    const averageSeconds = item.有效時間筆數 > 0
+      ? Math.round(
+          (item.總作答秒數 / item.有效時間筆數) * 10
+        ) / 10
+      : '';
+
+    return {
+      關卡名稱: item.關卡名稱,
+      總作答次數: item.總作答次數,
+      答對次數: item.答對次數,
+      答錯次數: item.答錯次數,
+      整體答對率: accuracy,
+      首次作答人次: item.首次作答人次,
+      首次答對人次: item.首次答對人次,
+      首次答對率: firstAccuracy,
+      平均作答秒數: averageSeconds
+    };
+  });
+
+  // =========================
+  // 產生 Excel
+  // =========================
+
+  if (!window.XLSX) {
+    console.error('Excel 匯出元件尚未載入');
+    return false;
   }
 
-  console.error('Excel 匯出元件尚未載入');
-  return false;
+  const workbook = XLSX.utils.book_new();
+  const summarySheet =
+    XLSX.utils.json_to_sheet(summary);
+  const playerSheet =
+    XLSX.utils.json_to_sheet(playerRecords);
+  const answerSheet =
+    XLSX.utils.json_to_sheet(allAnswerRecords);
+  const questionSheet =
+    XLSX.utils.json_to_sheet(questionAnalysis);
+  const topicSheet =
+    XLSX.utils.json_to_sheet(topicAnalysis);
+  // 設定欄寬
+  summarySheet['!cols'] = [
+    { wch: 32 },
+    { wch: 22 }
+  ];
+
+  playerSheet['!cols'] = [
+    { wch: 10 },
+    { wch: 28 },
+    { wch: 22 },
+    { wch: 22 },
+    { wch: 22 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 14 },
+    { wch: 16 }
+  ];
+
+  answerSheet['!cols'] = [
+    { wch: 10 },
+    { wch: 28 },
+    { wch: 14 },
+    { wch: 22 },
+    { wch: 14 },
+    { wch: 18 },
+    { wch: 12 },
+    { wch: 55 },
+    { wch: 16 },
+    { wch: 30 },
+    { wch: 16 },
+    { wch: 30 },
+    { wch: 12 },
+    { wch: 14 },
+    { wch: 20 },
+    { wch: 12 }
+  ];
+
+  questionSheet['!cols'] = [
+    { wch: 18 },
+    { wch: 12 },
+    { wch: 55 },
+    { wch: 30 },
+    { wch: 14 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 14 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 18 },
+    { wch: 30 },
+    { wch: 16 }
+  ];
+
+  topicSheet['!cols'] = [
+    { wch: 20 },
+    { wch: 14 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 14 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 18 }
+  ];
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    summarySheet,
+    '統計摘要'
+  );
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    playerSheet,
+    '玩家闖關紀錄'
+  );
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    answerSheet,
+    '逐題作答紀錄'
+  );
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    questionSheet,
+    '題目分析'
+  );
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    topicSheet,
+    '各稅目分析'
+  );
+
+  const dateText = new Date()
+    .toISOString()
+    .slice(0, 10);
+
+  XLSX.writeFile(
+    workbook,
+    `史前稅遊記_學習分析_${dateText}.xlsx`
+  );
+
+  return true;
 };
 
 window.addEventListener('resize', () => game.scale.refresh());
