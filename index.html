@@ -828,36 +828,43 @@ class QuestionScene extends Phaser.Scene {
     }
 
   showResult(success,title,subtitle,explanation){
-    const w=this.w,h=this.h;
-    this.add.rectangle(w/2,h/2,w,h,0x071a20,.82).setDepth(20).setInteractive();
-    const card=this.add.graphics().setDepth(21); card.fillStyle(success?0xeafaf0:0xfff0f0,1); card.fillRoundedRect(w*.27,h*.24,w*.46,h*.5,32); card.lineStyle(5,success?0x4caf78:0xef7c8e,1); card.strokeRoundedRect(w*.27,h*.24,w*.46,h*.5,32);
-    this.add.text(w/2,h*.33,success?'🎉':'💡',{fontSize:'62px'}).setOrigin(.5).setDepth(22);
-    this.add.text(w/2,h*.43,title,{fontFamily:'Microsoft JhengHei',fontSize:'36px',color:'#27454a',fontStyle:'bold'}).setOrigin(.5).setDepth(22);
-    this.add.text(w/2,h*.51,subtitle,{fontFamily:'Microsoft JhengHei',fontSize:'22px',color:'#4b6266'}).setOrigin(.5).setDepth(22);
-    if(explanation) this.add.text(w/2,h*.585,explanation,{fontFamily:'Microsoft JhengHei',fontSize:'19px',color:'#4b6266',align:'center',wordWrap:{width:w*.36}}).setOrigin(.5).setDepth(22);
-    const btn=this.add.text(w/2,h*.68,success?'繼續走迷宮':'重新作答',{fontFamily:'Microsoft JhengHei',fontSize:'23px',color:'#263238',fontStyle:'bold',backgroundColor:success?'#ffd166':'#ffb5c0',padding:{x:32,y:14}}).setOrigin(.5).setDepth(22).setInteractive({useHandCursor:true});
-    btn.on('pointerdown',()=>{
-      const map=this.scene.get('MapScene');
-      if(success){
-        map.completeNpc(this.npcId);
-        this.scene.resume('MapScene');
-        this.scene.stop('QuestionScene');
-      } else {
-        this.scene.restart({
-          npcId:this.npcId,
-          npcName:this.npcName,
-          questionIndex:this.questionIndex
-        });
-      }
-    });
-  }
-}
+  const w=this.w,h=this.h;
+  this.add.rectangle( w/2, h/2, w, h, 0x071a20, .82).setDepth(20).setInteractive();
+  const card=this.add.graphics().setDepth(21);
+  card.fillStyle( success ? 0xeafaf0 : 0xfff0f0, 1);
+  card.fillRoundedRect( w*.27, h*.24, w*.46, h*.5, 32);
+  card.lineStyle( 5, success ? 0x4caf78 : 0xef7c8e, 1);
+  card.strokeRoundedRect( w*.27, h*.24, w*.46, h*.5, 32 );
+  this.add.text( w/2, h*.33, success ? '🎉' : '💡', { fontSize:'62px' }).setOrigin(.5).setDepth(22);
+  this.add.text( w/2, h*.43, title, { fontFamily:'Microsoft JhengHei', fontSize:'36px', color:'#27454a', fontStyle:'bold'}).setOrigin(.5).setDepth(22);
+  this.add.text( w/2, h*.51, subtitle, { fontFamily:'Microsoft JhengHei', fontSize:'22px', color:'#4b6266' }).setOrigin(.5).setDepth(22);
+  if(explanation){
+  this.add.text( w/2, h*.585, explanation, { fontFamily:'Microsoft JhengHei', fontSize:'19px', color:'#4b6266', align:'center', wordWrap:{ width:w*.36 } }).setOrigin(.5).setDepth(22);}
+  const btn=this.add.text(w/2, h*.68, success ? '繼續走迷宮（Enter）' : '重新作答（Enter）', 
+                          { fontFamily:'Microsoft JhengHei', fontSize:'23px', color:'#263238', fontStyle:'bold', backgroundColor:success ? '#ffd166' : '#ffb5c0', padding:{ x:32,y:14 } })
+  .setOrigin(.5).setDepth(22).setInteractive({useHandCursor:true});
+
+  let actionTriggered=false;
+  const continueGame=()=>{
+    // 防止滑鼠和 Enter 同時觸發兩次
+    if(actionTriggered) return; actionTriggered=true;
+   const map=this.scene.get('MapScene');
+    if(success){ map.completeNpc(this.npcId);
+      this.scene.resume('MapScene');
+      this.scene.stop('QuestionScene');
+    }else{
+      this.scene.restart({ npcId:this.npcId, npcName:this.npcName, questionIndex:this.questionIndex });
+    }
+  };
+  // 滑鼠點擊
+  btn.on('pointerdown',continueGame);
+  // 鍵盤 Enter
+  this.input.keyboard.once('keydown-ENTER', continueGame);}
 
 
     // ===== scenesEndScene.js =====
 class EndScene extends Phaser.Scene {
-  constructor(){ super({key:'EndScene'}); }
-
+  constructor(){ super({key:'EndScene'}); }\
   create(){
     const {width:w,height:h}=this.scale;
     const bg=this.add.graphics(); bg.fillGradientStyle(0x173f46,0x173f46,0x64b98a,0xf4d77c,1); bg.fillRect(0,0,w,h);
