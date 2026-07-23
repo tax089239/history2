@@ -382,6 +382,8 @@ class MapScene extends Phaser.Scene {
     this.offsetX=(w-this.cols*this.cell)/2;
     this.offsetY=topArea;
     this.questionOpening=false;
+    this.questionOpening=false;
+    this.exitLocked=false;
     this.cameras.main.fadeIn(250,12,40,45);
 
     this.drawBackground();
@@ -631,20 +633,29 @@ class MapScene extends Phaser.Scene {
   }
 
   handleExit(){
-    if(this.exitLocked || this.questionOpening) return;
-    const b=this.game.gameState.badges;
-    if(b.elder&&b.baby&&b.cloud){
-      this.exitLocked=true;
-      this.player.setVelocity(0);
-      this.game.finishSession();
-      this.scene.start('EndScene');
-    }else{
+      // 正在開啟題目時，不處理出口
+      if(this.questionOpening) return;
+      const b=this.game.gameState.badges;
+      const allCompleted=b.elder && b.baby && b.cloud;
+      // 三關都完成時，不受舊的 exitLocked 狀態影響
+      if(allCompleted){
+        this.exitLocked=true;
+        this.player.setVelocity(0);
+        this.game.finishSession();
+        // 關閉可能殘留的答題場景
+        this.scene.stop('QuestionScene');
+        this.scene.start('EndScene');
+        return;
+      }
+      // 尚未完成三關時，避免重複觸發提示
+      if(this.exitLocked) return;
       this.exitLocked=true;
       this.promptText.setText('🔒 請先找到並完成三個租稅關卡！');
       this.cameras.main.shake(160,.004);
-      this.time.delayedCall(650,()=>{this.exitLocked=false;});
+      this.time.delayedCall(650,()=>{
+        this.exitLocked=false;
+      });
     }
-  }
 }
 
 
