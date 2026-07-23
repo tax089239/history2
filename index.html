@@ -440,7 +440,7 @@ class MapScene extends Phaser.Scene {
 
     // 叢林底色與草地
     g.fillStyle(0x2f8f4e,.98); g.fillRect(0,this.h*.28,this.w,this.h*.72);
-    g.fillStyle(0x63b944,.98); g.fillRect(0,this.h*.36,this.w,this.h*.64);
+    g.fillStyle(0x8fdc62,.98); g.fillRect(0,this.h*.36,this.w,this.h*.64);
 
     // 裝飾葉叢與花朵，集中在迷宮外圍
     const palette=[0x1f7d3f,0x2f9850,0x4eae55,0x77bf4b];
@@ -510,7 +510,7 @@ class MapScene extends Phaser.Scene {
     const floor=this.add.graphics();
 
     // 大面積草地迷宮底板
-    floor.fillStyle(0x78bf43,.98);
+    floor.fillStyle(0xc7f28a,.98);
     floor.fillRoundedRect(this.offsetX-14,this.offsetY-14,this.cols*this.cell+28,this.rows*this.cell+28,24);
     floor.lineStyle(5,0x3f7e35,.9);
     floor.strokeRoundedRect(this.offsetX-14,this.offsetY-14,this.cols*this.cell+28,this.rows*this.cell+28,24);
@@ -563,7 +563,7 @@ class MapScene extends Phaser.Scene {
   makeNpc(x,y,texture,id,name,topic,color){
     const npc=this.npcs.create(x,y,texture).setScale(Math.max(.58,this.cell/92)).setDepth(7).setData({id,name,topic,busy:false});
     const tween=this.tweens.add({targets:npc,y:y-5,duration:850,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-    const ring=this.add.circle(x,y,31,color,.18).setStrokeStyle(3,color,.95).setDepth(6);
+    const ring=this.add.circle(x,y,31,color,.35).setStrokeStyle(5,color,1).setDepth(6);
     const ringTween=this.tweens.add({targets:ring,scale:1.18,alpha:.05,duration:900,yoyo:true,repeat:-1});
     npc.setData('ring',ring);
     npc.setData('tween',tween);
