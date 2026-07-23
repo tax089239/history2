@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#123f47">
-  <title>史前稅務神殿大冒險</title>
+  <title>史前稅務大冒險</title>
 
   <style>
 * { box-sizing: border-box; }
@@ -39,7 +39,7 @@ body {
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-  <main id="game-container" aria-label="史前稅務神殿大冒險"></main>
+  <main id="game-container" aria-label="史前稅務大冒險"></main>
 
   <script>
 
@@ -358,10 +358,10 @@ class MapScene extends Phaser.Scene {
 
     this.npcs=this.physics.add.staticGroup();
     const npcCells=this.pickRandomCells(3, [{c:0,r:this.rows-1},{c:this.cols-1,r:0}]);
-    const npcDefs=[
-      ['npc_elder','elder','石器族長','統一發票',0xffc857],
-      ['npc_baby','baby','釋迦寶寶','稅金用途',0x9ccc65],
-      ['npc_cloud','cloud','雲端精靈','雲端發票',0x64b5f6]
+    const npcDefs = [
+      ['npc_house', 'elder', '房屋稅精靈', '房屋稅', 0xff8a65],
+      ['npc_land', 'baby', '地價稅守護者', '地價稅', 0x81c784],
+      ['npc_vehicle', 'cloud', '牌照稅巡守員', '使用牌照稅', 0x64b5f6]
     ];
     npcDefs.forEach((d,i)=>{
       const p=this.cellCenter(npcCells[i].c,npcCells[i].r);
@@ -586,7 +586,7 @@ class MapScene extends Phaser.Scene {
 
   updateBadgeUI(){
     const b=this.game.gameState.badges; const n=[b.elder,b.baby,b.cloud].filter(Boolean).length;
-    this.uiText.setText(`租稅任務進度　${n} / 3\n${b.elder?'📜':'○'} 發票　 ${b.baby?'🍍':'○'} 稅金　 ${b.cloud?'☁️':'○'} 載具`);
+    this.uiText.setText(`租稅任務進度　${n} / 3\n${b.elder?'🛖':'○'} 房屋　 ${b.baby?'🌳':'○'} 土地　 ${b.cloud?'🚗':'○'} 牌照`);
   }
 
   handleExit(){
@@ -640,9 +640,9 @@ class QuestionScene extends Phaser.Scene {
 
   getQuestionData(id){
     return {
-      elder:{question:'買東西時索取統一發票，有哪些好處？',options:['可以參加定期對獎','可以證明交易並幫助稅收管理','以上皆是'],answer:2,explanation:'發票能證明交易、幫助誠實納稅，也能參加對獎喔！'},
-      baby:{question:'大家繳的稅金，主要會用在哪裡？',options:['公園、學校、道路與醫療服務','只拿來買零食','全部藏進神殿寶箱'],answer:0,explanation:'稅金會用在公共建設、教育、醫療等大家共享的服務。'},
-      cloud:{question:'使用雲端發票（載具）有什麼優點？',options:['減少紙張，也比較不容易弄丟','系統可以自動幫忙對獎','以上都是'],answer:2,explanation:'雲端發票方便、環保，還能自動對獎！'}
+      elder:{question:'房屋稅公益出租的稅率是多少？',options:['1.2%','2%','3%'],answer:0,explanation:'鼓勵房東公益出租，適用與自住相同的稅率'},
+      baby:{question:'地價稅自用住宅用地要在幾月幾號以前提出？',options:['8/31','9/22','不用提出申請'],answer:1,explanation:'提出申請至少省4倍!!快來申請'},
+      cloud:{question:'牌照稅身障者無駕照要申請身心障礙減免什麼地址要與身障者相同?',options:['戶籍地','監理機關之住居所','車籍地','以上擇一'],answer:3,explanation:'減免標準放寬再放寬，快看看自己有沒有符合'}
     }[id];
   }
 
@@ -695,10 +695,10 @@ class EndScene extends Phaser.Scene {
     }
     const panel=this.add.graphics(); panel.fillStyle(0x102f36,.9); panel.fillRoundedRect(w*.16,h*.08,w*.68,h*.82,40); panel.lineStyle(5,0xffe49a,.95); panel.strokeRoundedRect(w*.16,h*.08,w*.68,h*.82,40);
     this.add.image(w/2,h*.23,'temple_door').setScale(1.3);
-    this.add.text(w/2,h*.39,'神殿封印解除！',{fontFamily:'Microsoft JhengHei',fontSize:'52px',color:'#fff2bd',fontStyle:'bold',stroke:'#5a3a18',strokeThickness:7}).setOrigin(.5);
+    this.add.text(w/2,h*.39,'完成史前租稅闖關!',{fontFamily:'Microsoft JhengHei',fontSize:'52px',color:'#fff2bd',fontStyle:'bold',stroke:'#5a3a18',strokeThickness:7}).setOrigin(.5);
     this.add.text(w/2,h*.49,'恭喜大朋友、小朋友完成三項租稅任務',{fontFamily:'Microsoft JhengHei',fontSize:'27px',color:'#ffffff'}).setOrigin(.5);
-    this.add.text(w/2,h*.59,'🏆 親子租稅小勇者 🏆',{fontFamily:'Microsoft JhengHei',fontSize:'38px',color:'#74e0aa',fontStyle:'bold'}).setOrigin(.5);
-    this.add.text(w/2,h*.67,'📜 認識發票　　🍍 了解稅金　　☁️ 學會載具',{fontFamily:'Microsoft JhengHei',fontSize:'23px',color:'#ffffff'}).setOrigin(.5);
+    this.add.text(w/2,h*.59,'🏆 稅務小達人 🏆',{fontFamily:'Microsoft JhengHei',fontSize:'38px',color:'#74e0aa',fontStyle:'bold'}).setOrigin(.5);
+    this.add.text(w/2,h*.67,'🛖 房屋稅　　🌳地價稅　　🚗牌照稅',{fontFamily:'Microsoft JhengHei',fontSize:'23px',color:'#ffffff'}).setOrigin(.5);
     const btn=this.add.text(w/2,h*.79,'再玩一次  ↻',{fontFamily:'Microsoft JhengHei',fontSize:'25px',color:'#263238',fontStyle:'bold',backgroundColor:'#ffd166',padding:{x:38,y:16}}).setOrigin(.5).setInteractive({useHandCursor:true});
     btn.on('pointerover',()=>btn.setScale(1.05)); btn.on('pointerout',()=>btn.setScale(1));
     btn.on('pointerdown',()=>{
