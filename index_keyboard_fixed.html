@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#123f47">
+  <title>史前稅務大冒險</title>
+
+  <style>
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; }
+body {
+  overflow: hidden;
+  background: #0d2f35;
+  font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+}
+#game-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #173f46;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#game-container canvas {
+  display:block;
+  aspect-ratio:16 / 10;
+  width:min(100vw, calc(100vh * 1.6)) !important;
+  height:calc(min(100vw, calc(100vh * 1.6)) / 1.6) !important;
+  max-width:none;
+  max-height:none;
+  touch-action: none;
+}
+
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <main id="game-container" aria-label="史前稅務大冒險"></main>
+
+  <script>
+
+    // ===== scenesBootScene.js =====
+class BootScene extends Phaser.Scene {
+  constructor() { super({ key: 'BootScene' }); }
+
+  preload() {
+    this.load.image('frontpage', 'frontpage.png');
+    this.load.image('instructions', 'instructions.png');
+  }
+
+  create() {
+    this.createTextures();
+    this.scene.start('MenuScene');
+  }
+
+  createTextures() {
+    const g = this.add.graphics();
+
+    g.clear();
+    g.fillStyle(0x2f855a); g.fillRoundedRect(10, 26, 44, 34, 14);
+    g.fillStyle(0xf4c78e); g.fillCircle(32, 24, 17);
+    g.fillStyle(0x4a2f2a); g.fillCircle(26, 22, 2); g.fillCircle(38, 22, 2);
+    g.lineStyle(2, 0x4a2f2a); g.beginPath(); g.arc(32, 27, 7, 0.2, Math.PI - 0.2); g.strokePath();
+    g.fillStyle(0xffd166); g.fillRoundedRect(14, 4, 36, 12, 6); g.fillRect(21, 13, 22, 6);
+    g.fillStyle(0xffffff); g.fillCircle(48, 44, 7); g.fillCircle(16, 44, 7);
+    g.generateTexture('player', 64, 64);
+
+    g.clear();
+    g.fillStyle(0xe74c3c);
+    g.fillTriangle(8,28,32,8,56,28);
+    g.fillStyle(0xffe0b2);
+    g.fillRoundedRect(12,28,40,28,8);
+    g.fillStyle(0x8d6e63);
+    g.fillRoundedRect(27,40,10,16,3);
+    g.fillStyle(0x81d4fa);
+    g.fillRoundedRect(17,36,8,8,2);
+    g.fillRoundedRect(39,36,8,8,2);
+    g.fillStyle(0x333333);
+    g.fillCircle(24,47,2);
+    g.fillCircle(40,47,2);
+    g.lineStyle(2,0x333333);
+    g.beginPath();
+    g.arc(32,51,6,0.2,Math.PI-0.2);
+    g.strokePath();
+    g.generateTexture('npc_elder',64,64);
+
+    g.clear();
+    g.fillStyle(0x8d6e63);
+    g.fillRoundedRect(28,34,8,18,3);
+    g.fillStyle(0x43a047);
+    g.fillCircle(32,20,16);
+    g.fillCircle(20,28,12);
+    g.fillCircle(44,28,12);
+    g.fillCircle(32,32,15);
+    g.fillStyle(0x222222);
+    g.fillCircle(27,28,2);
+    g.fillCircle(37,28,2);
+    g.lineStyle(2,0x222222);
+    g.beginPath();
+    g.arc(32,34,5,0.2,Math.PI-0.2);
+    g.strokePath();
+    g.fillStyle(0x7cb342);
+    g.fillEllipse(32,58,42,8);
+    g.generateTexture('npc_baby',64,64);
+
+    g.clear();
+    g.fillStyle(0x42a5f5);
+    g.fillRoundedRect(12,28,40,18,6);
+    g.fillStyle(0x64b5f6);
+    g.fillRoundedRect(18,18,28,14,6);
+    g.fillStyle(0xe3f2fd);
+    g.fillRoundedRect(22,22,8,6,2);
+    g.fillRoundedRect(34,22,8,6,2);
+    g.fillStyle(0x212121);
+    g.fillCircle(22,48,5);
+    g.fillCircle(42,48,5);
+    g.fillStyle(0xffffff);
+    g.fillCircle(22,48,2);
+    g.fillCircle(42,48,2);
+    g.fillStyle(0xffeb3b);
+    g.fillCircle(50,35,2);
+    g.fillStyle(0xffffff);
+    g.fillCircle(26,36,2);
+    g.fillCircle(38,36,2);
+    g.lineStyle(2,0xffffff);
+    g.beginPath();
+    g.arc(32,40,5,0.2,Math.PI-0.2);
+    g.strokePath();
+    g.generateTexture('npc_cloud',64,64);
+
+    g.clear();
+    g.fillStyle(0x5d4037); g.fillRoundedRect(0,24,128,70,12);
+    g.fillStyle(0x7b5b4a); g.fillTriangle(0,28,64,0,128,28);
+    g.fillStyle(0xffd166); g.fillRoundedRect(45,42,38,52,10);
+    g.fillStyle(0x6d4c41); g.fillCircle(72,68,4);
+    g.lineStyle(4,0xffefad); g.strokeRoundedRect(45,42,38,52,10);
+    g.generateTexture('temple_door',128,96);
+
+    g.destroy();
+  }
+}
+
+
+    // ===== scenesMenuScene.js =====
+class MenuScene extends Phaser.Scene {
+  constructor() { super({ key: 'MenuScene' }); }
+
+  fitImageCover(image, areaWidth, areaHeight) {
+    const texture = image.texture.getSourceImage();
+    const scale = Math.max(areaWidth / texture.width, areaHeight / texture.height);
+    image.setScale(scale);
+    image.setPosition(areaWidth / 2, areaHeight / 2);
+    return image;
+  }
+
+  create() {
+    // Scene 重新進入時，舊容器雖已被 Phaser 銷毀，
+    // 自訂屬性仍可能保留參照，必須手動清空，否則開始按鈕會被誤判為面板仍開啟。
+    this.instructionLayer = null;
+    this.adminLayer = null;
+
+    const { width: w, height: h } = this.scale;
+    this.add.rectangle(w / 2, h / 2, w, h, 0x173f46);
+    this.fitImageCover(this.add.image(w / 2, h / 2, 'frontpage'), w, h);
+
+    const gearZone = this.add.zone(w * 0.043, h * 0.065, 95, 95)
+      .setInteractive({ useHandCursor: true });
+    gearZone.on('pointerdown', () => this.openPasswordPanel());
+
+    const startZone = this.add.zone(w / 2, h * 0.855, w * 0.37, h * 0.16)
+      .setInteractive({ useHandCursor: true });
+    startZone.on('pointerdown', () => this.showInstructions());
+
+    this.input.keyboard.once('keydown-ENTER', () => this.showInstructions());
+  }
+
+  showInstructions() {
+    if (this.instructionLayer || this.adminLayer) return;
+    const { width: w, height: h } = this.scale;
+    this.instructionLayer = this.add.container(0, 0).setDepth(100);
+
+    const shade = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.42).setInteractive();
+    const page = this.fitImageCover(this.add.image(w / 2, h / 2, 'instructions'), w, h);
+    const gearZone = this.add.zone(w * 0.043, h * 0.065, 95, 95)
+      .setInteractive({ useHandCursor: true });
+    const startZone = this.add.zone(w / 2, h * 0.86, w * 0.38, h * 0.16)
+      .setInteractive({ useHandCursor: true });
+    const closeZone = this.add.zone(w * 0.686, h * 0.352, 90, 90)
+      .setInteractive({ useHandCursor: true });
+
+    gearZone.on('pointerdown', () => this.openPasswordPanel());
+    startZone.on('pointerdown', () => this.startGame());
+    closeZone.on('pointerdown', () => {
+      this.instructionLayer.destroy(true);
+      this.instructionLayer = null;
+    });
+
+    this.instructionLayer.add([shade, page, gearZone, startZone, closeZone]);
+  }
+
+  openPasswordPanel() {
+    if (this.adminLayer) return;
+    const { width: w, height: h } = this.scale;
+    this.adminLayer = this.add.container(0, 0).setDepth(200);
+
+    const shade = this.add.rectangle(w / 2, h / 2, w, h, 0x071a20, 0.76).setInteractive();
+    const card = this.add.graphics();
+    card.fillStyle(0xfffbef, 1);
+    card.fillRoundedRect(w * 0.31, h * 0.22, w * 0.38, h * 0.52, 30);
+    card.lineStyle(5, 0xffb703, 1);
+    card.strokeRoundedRect(w * 0.31, h * 0.22, w * 0.38, h * 0.52, 30);
+
+    const title = this.add.text(w / 2, h * 0.30, '後台管理登入', {
+      fontFamily: 'Microsoft JhengHei', fontSize: '34px', color: '#27454a', fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    const hint = this.add.text(w / 2, h * 0.39, '請輸入 6 位數密碼', {
+      fontFamily: 'Microsoft JhengHei', fontSize: '22px', color: '#5d7074'
+    }).setOrigin(0.5);
+
+    const displayBox = this.add.rectangle(w / 2, h * 0.49, 300, 68, 0xffffff, 1).setStrokeStyle(3, 0x84b8ad);
+    const display = this.add.text(w / 2, h * 0.49, '', {
+      fontFamily: 'Microsoft JhengHei', fontSize: '34px', color: '#263b40', letterSpacing: 10
+    }).setOrigin(0.5);
+
+    let password = '';
+    const updateDisplay = () => display.setText('●'.repeat(password.length));
+    const keyHandler = event => {
+      if (/^[0-9]$/.test(event.key) && password.length < 6) {
+        password += event.key;
+        updateDisplay();
+      } else if (event.key === 'Backspace') {
+        password = password.slice(0, -1);
+        updateDisplay();
+      } else if (event.key === 'Enter') {
+        submit();
+      } else if (event.key === 'Escape') {
+        close();
+      }
+    };
+
+    const message = this.add.text(w / 2, h * 0.57, '', {
+      fontFamily: 'Microsoft JhengHei', fontSize: '19px', color: '#d64545', fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    const submitButton = this.makeButton(w / 2 - 100, h * 0.66, 180, 58, '登入', 0xffd166, () => submit());
+    const closeButton = this.makeButton(w / 2 + 100, h * 0.66, 180, 58, '取消', 0xdfe8e8, () => close());
+
+    const submit = () => {
+      if (password === '231600') {
+        window.removeEventListener('keydown', keyHandler);
+        this.adminLayer.destroy(true);
+        this.adminLayer = null;
+        this.showAdminDashboard();
+      } else {
+        message.setText('密碼錯誤，請重新輸入');
+        password = '';
+        updateDisplay();
+      }
+    };
+
+    const close = () => {
+      window.removeEventListener('keydown', keyHandler);
+      this.adminLayer.destroy(true);
+      this.adminLayer = null;
+    };
+
+    window.addEventListener('keydown', keyHandler);
+    this.adminLayer.add([shade, card, title, hint, displayBox, display, message, ...submitButton, ...closeButton]);
+  }
+
+  showAdminDashboard() {
+    const { width: w, height: h } = this.scale;
+    this.adminLayer = this.add.container(0, 0).setDepth(210);
+    const stats = this.game.getStats();
+    const answered = stats.sessions.filter(s => s.firstAnsweredAt).length;
+    const completed = stats.sessions.filter(s => s.completed).length;
+    const attempts = stats.sessions.reduce((sum, s) => sum + (s.attempts || 0), 0);
+
+    const shade = this.add.rectangle(w / 2, h / 2, w, h, 0x071a20, 0.80).setInteractive();
+    const card = this.add.graphics();
+    card.fillStyle(0xfffbef, 1);
+    card.fillRoundedRect(w * 0.19, h * 0.11, w * 0.62, h * 0.78, 34);
+    card.lineStyle(5, 0xffb703, 1);
+    card.strokeRoundedRect(w * 0.19, h * 0.11, w * 0.62, h * 0.78, 34);
+
+    const title = this.add.text(w / 2, h * 0.18, '後台管理設定', {
+      fontFamily: 'Microsoft JhengHei', fontSize: '38px', color: '#27454a', fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    const cards = [
+      ['答題人數', answered, w * 0.34],
+      ['完成闖關', completed, w * 0.50],
+      ['總作答次數', attempts, w * 0.66]
+    ];
+    const items = [];
+    cards.forEach(([label, value, x]) => {
+      const box = this.add.rectangle(x, h * 0.38, 180, 130, 0xffffff, 1).setStrokeStyle(3, 0x84b8ad);
+      const num = this.add.text(x, h * 0.35, String(value), {
+        fontFamily: 'Microsoft JhengHei', fontSize: '42px', color: '#e46a1a', fontStyle: 'bold'
+      }).setOrigin(0.5);
+      const txt = this.add.text(x, h * 0.43, label, {
+        fontFamily: 'Microsoft JhengHei', fontSize: '20px', color: '#425b60', fontStyle: 'bold'
+      }).setOrigin(0.5);
+      items.push(box, num, txt);
+    });
+
+    const note = this.add.text(w / 2, h * 0.55,
+      '統計資料儲存在目前使用的瀏覽器中\n適合在同一台電腦或平板作為活動闖關機使用', {
+        fontFamily: 'Microsoft JhengHei', fontSize: '20px', color: '#5d7074', align: 'center', lineSpacing: 8
+      }).setOrigin(0.5);
+
+    const status = this.add.text(w / 2, h * 0.82, '', {
+      fontFamily: 'Microsoft JhengHei', fontSize: '18px', color: '#2f855a', fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    const exportBtn = this.makeButton(w / 2 - 270, h * 0.70, 250, 66, '匯出 Excel', 0xffd166, () => {
+      const ok = this.game.exportStatsToExcel();
+      status.setColor(ok ? '#2f855a' : '#d64545');
+      status.setText(ok ? 'Excel 已開始下載' : 'Excel 元件尚未載入，請重新整理後再試');
+    });
+
+    const clearBtn = this.makeButton(w / 2, h * 0.70, 250, 66, '清空統計資料', 0xffb5a7, () => {
+      const confirmed = window.confirm('確定要清空所有答題與闖關統計資料嗎？\n此動作無法復原。');
+      if (!confirmed) {
+        status.setColor('#5d7074');
+        status.setText('已取消清空資料');
+        return;
+      }
+      this.game.clearStats();
+      this.adminLayer.destroy(true);
+      this.adminLayer = null;
+      this.showAdminDashboard();
+    });
+
+    const closeBtn = this.makeButton(w / 2 + 270, h * 0.70, 210, 66, '關閉', 0xdfe8e8, () => {
+      this.adminLayer.destroy(true);
+      this.adminLayer = null;
+    });
+
+    this.adminLayer.add([shade, card, title, ...items, note, ...exportBtn, ...clearBtn, ...closeBtn, status]);
+  }
+
+  makeButton(x, y, width, height, text, color, callback) {
+    const box = this.add.rectangle(x, y, width, height, color, 1)
+      .setStrokeStyle(3, 0x8a6d2f)
+      .setInteractive({ useHandCursor: true });
+    const label = this.add.text(x, y, text, {
+      fontFamily: 'Microsoft JhengHei', fontSize: '23px', color: '#263238', fontStyle: 'bold'
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    box.on('pointerdown', callback);
+    label.on('pointerdown', callback);
+    return [box, label];
+  }
+
+  startGame() {
+    this.game.gameState.badges = { elder: false, baby: false, cloud: false };
+    this.game.startSession();
+    this.cameras.main.fadeOut(250, 18, 50, 58);
+    this.time.delayedCall(250, () => this.scene.start('MapScene'));
+  }
+}
+
+
+    // ===== scenesMapScene.js =====
+class MapScene extends Phaser.Scene {
+  constructor(){ super({key:'MapScene'}); }
+
+  create(){
+    const {width:w,height:h}=this.scale;
+    this.w=w; this.h=h;
+    // 16:10 版面：迷宮接近滿版，保留上方標題與下方提示空間
+    this.cols=15; this.rows=9;
+    const sideMargin=Math.max(42,w*0.035);
+    const topArea=Math.max(118,h*0.12);
+    const bottomArea=Math.max(58,h*0.055);
+    this.cell=Math.floor(Math.min((w-sideMargin*2)/this.cols,(h-topArea-bottomArea)/this.rows));
+    this.offsetX=(w-this.cols*this.cell)/2;
+    this.offsetY=topArea;
+    this.questionOpening=false;
+    this.exitLocked=false;
+    this.cameras.main.fadeIn(250,12,40,45);
+
+    this.drawBackground();
+    this.maze=this.generateMaze(this.cols,this.rows);
+    this.makeMazeEasier();
+    this.drawMaze();
+
+    const start=this.cellCenter(0,this.rows-1);
+    const finish=this.cellCenter(this.cols-1,0);
+
+    this.exit=this.physics.add.staticSprite(finish.x,finish.y,'temple_door').setScale(Math.max(.48,this.cell/125)).setDepth(5);
+    this.add.text(finish.x,finish.y+this.cell*.43,'終點',{fontFamily:'Microsoft JhengHei',fontSize:'17px',color:'#4b321d',fontStyle:'bold',backgroundColor:'rgba(255,245,215,.9)',padding:{x:9,y:3}}).setOrigin(.5).setDepth(5);
+
+    this.npcs=this.physics.add.staticGroup();
+    const npcCells=this.pickRandomCells(3, [{c:0,r:this.rows-1},{c:this.cols-1,r:0}]);
+    // 格式：[圖片 texture、關卡 ID、顯示名稱、租稅主題、光圈顏色]
+    // 圖片 texture 必須沿用 BootScene 已建立的 npc_elder／npc_baby／npc_cloud。
+    const npcDefs = [
+      ['npc_elder', 'elder', '房屋稅精靈', '房屋稅', 0xff8a65],
+      ['npc_baby', 'baby', '地價稅守護者', '地價稅', 0x81c784],
+      ['npc_cloud', 'cloud', '牌照稅巡守員', '使用牌照稅', 0x64b5f6]
+    ];
+    npcDefs.forEach((d,i)=>{
+      const p=this.cellCenter(npcCells[i].c,npcCells[i].r);
+      this.makeNpc(p.x,p.y,d[0],d[1],d[2],d[3],d[4]);
+    });
+
+    this.player=this.physics.add.sprite(start.x,start.y,'player').setScale(Math.max(.62,this.cell/88)).setDepth(10);
+    this.player.setCollideWorldBounds(true);
+    this.player.body.setSize(36,36).setOffset(14,21);
+
+    this.cursors=this.input.keyboard.createCursorKeys();
+    this.wasd=this.input.keyboard.addKeys({up:Phaser.Input.Keyboard.KeyCodes.W,down:Phaser.Input.Keyboard.KeyCodes.S,left:Phaser.Input.Keyboard.KeyCodes.A,right:Phaser.Input.Keyboard.KeyCodes.D});
+
+    this.physics.add.collider(this.player,this.walls);
+    this.physics.add.overlap(this.player,this.npcs,this.handleNpcTouch,null,this);
+    this.physics.add.overlap(this.player,this.exit,this.handleExit,null,this);
+    this.createHud();
+  }
+
+  drawBackground(){
+    // 主視覺配色：藍天、翠綠叢林、暖黃色石材
+    const g=this.add.graphics();
+    g.fillGradientStyle(0x45c7f4,0x45c7f4,0x9ee6ff,0x61b97a,1);
+    g.fillRect(0,0,this.w,this.h);
+
+    // 遠山與火山剪影
+    g.fillStyle(0x68b77a,.9);
+    g.fillTriangle(this.w*.05,this.h*.34,this.w*.24,this.h*.08,this.w*.43,this.h*.34);
+    g.fillStyle(0x4f8f69,.92);
+    g.fillTriangle(this.w*.11,this.h*.34,this.w*.28,this.h*.13,this.w*.48,this.h*.34);
+    g.fillStyle(0x6d5946,.95);
+    g.fillTriangle(this.w*.17,this.h*.30,this.w*.25,this.h*.10,this.w*.33,this.h*.30);
+    g.fillStyle(0xff7a1a,.9);
+    g.fillTriangle(this.w*.238,this.h*.12,this.w*.25,this.h*.095,this.w*.262,this.h*.12);
+
+    // 叢林底色與草地
+    g.fillStyle(0x2f8f4e,.98); g.fillRect(0,this.h*.28,this.w,this.h*.72);
+    g.fillStyle(0x8fdc62,.98); g.fillRect(0,this.h*.36,this.w,this.h*.64);
+
+    // 裝飾葉叢與花朵，集中在迷宮外圍
+    const palette=[0x1f7d3f,0x2f9850,0x4eae55,0x77bf4b];
+    for(let i=0;i<90;i++){
+      const edge=Math.random()<.5;
+      const x=edge?(Math.random()<.5?Phaser.Math.Between(0,Math.max(20,this.offsetX-10)):Phaser.Math.Between(this.offsetX+this.cols*this.cell+10,this.w)):Phaser.Math.Between(0,this.w);
+      const y=edge?Phaser.Math.Between(100,this.h):Phaser.Math.Between(this.h-55,this.h);
+      this.add.circle(x,y,Phaser.Math.Between(4,11),Phaser.Utils.Array.GetRandom(palette),.78).setDepth(0);
+    }
+    for(let i=0;i<36;i++){
+      const x=Phaser.Math.Between(12,this.w-12), y=Phaser.Math.Between(this.offsetY-15,this.h-16);
+      this.add.circle(x,y,Phaser.Math.Between(2,4),Phaser.Utils.Array.GetRandom([0xffffff,0xffdf6b,0xff8b75]),.85).setDepth(1);
+    }
+  }
+
+  generateMaze(cols,rows){
+    const grid=[];
+    for(let r=0;r<rows;r++){
+      const row=[];
+      for(let c=0;c<cols;c++) row.push({c,r,visited:false,walls:{top:true,right:true,bottom:true,left:true}});
+      grid.push(row);
+    }
+    const stack=[];
+    let current=grid[rows-1][0]; current.visited=true;
+    let visited=1;
+    while(visited<cols*rows){
+      const neighbors=[];
+      const {c,r}=current;
+      if(r>0&&!grid[r-1][c].visited) neighbors.push(['top',grid[r-1][c],'bottom']);
+      if(c<cols-1&&!grid[r][c+1].visited) neighbors.push(['right',grid[r][c+1],'left']);
+      if(r<rows-1&&!grid[r+1][c].visited) neighbors.push(['bottom',grid[r+1][c],'top']);
+      if(c>0&&!grid[r][c-1].visited) neighbors.push(['left',grid[r][c-1],'right']);
+      if(neighbors.length){
+        const [dir,next,opposite]=Phaser.Utils.Array.GetRandom(neighbors);
+        current.walls[dir]=false; next.walls[opposite]=false;
+        stack.push(current); current=next; current.visited=true; visited++;
+      }else current=stack.pop();
+    }
+    return grid;
+  }
+
+  makeMazeEasier(){
+    const candidates=[];
+    for(let r=0;r<this.rows;r++){
+      for(let c=0;c<this.cols;c++){
+        if(c<this.cols-1 && this.maze[r][c].walls.right) candidates.push({c,r,dir:'right'});
+        if(r<this.rows-1 && this.maze[r][c].walls.bottom) candidates.push({c,r,dir:'bottom'});
+      }
+    }
+    Phaser.Utils.Array.Shuffle(candidates);
+    const openings=Math.floor(candidates.length*0.42);
+    candidates.slice(0,openings).forEach(item=>{
+      const cell=this.maze[item.r][item.c];
+      if(item.dir==='right'){
+        cell.walls.right=false;
+        this.maze[item.r][item.c+1].walls.left=false;
+      }else{
+        cell.walls.bottom=false;
+        this.maze[item.r+1][item.c].walls.top=false;
+      }
+    });
+  }
+
+  drawMaze(){
+    this.walls=this.physics.add.staticGroup();
+    const wallThickness=Math.max(10,Math.floor(this.cell*.18));
+    const floor=this.add.graphics();
+
+    // 大面積草地迷宮底板
+    floor.fillStyle(0xc7f28a,.98);
+    floor.fillRoundedRect(this.offsetX-14,this.offsetY-14,this.cols*this.cell+28,this.rows*this.cell+28,24);
+    floor.lineStyle(5,0x3f7e35,.9);
+    floor.strokeRoundedRect(this.offsetX-14,this.offsetY-14,this.cols*this.cell+28,this.rows*this.cell+28,24);
+
+    // 每段牆用一塊一塊石磚組成，同時加入不可穿越的碰撞牆
+    const drawBrickRun=(x,y,length,horizontal=true)=>{
+      const step=Math.max(18,Math.floor(this.cell*.28));
+      const count=Math.max(1,Math.ceil(length/step));
+      const actual=length/count;
+      for(let i=0;i<count;i++){
+        const bx=horizontal?x-length/2+actual*(i+.5):x;
+        const by=horizontal?y:y-length/2+actual*(i+.5);
+        const bw=horizontal?actual+1:wallThickness+4;
+        const bh=horizontal?wallThickness+4:actual+1;
+        const brick=this.add.rectangle(bx,by,bw,bh,0xd8ae67,1).setDepth(3);
+        brick.setStrokeStyle(2,0x8b642f,1);
+        // 石塊高光與底部陰影
+        this.add.rectangle(bx,by-bh*.22,Math.max(4,bw-5),Math.max(2,bh*.18),0xf3d58f,.55).setDepth(4);
+        this.add.rectangle(bx,by+bh*.28,Math.max(4,bw-4),Math.max(2,bh*.2),0x8a5c2b,.42).setDepth(4);
+      }
+      const collider=this.add.rectangle(x,y,horizontal?length:wallThickness,horizontal?wallThickness:length,0x000000,0).setDepth(2);
+      this.physics.add.existing(collider,true);
+      this.walls.add(collider);
+    };
+
+    for(let r=0;r<this.rows;r++){
+      for(let c=0;c<this.cols;c++){
+        const cell=this.maze[r][c];
+        const x=this.offsetX+c*this.cell, y=this.offsetY+r*this.cell;
+        if(cell.walls.top) drawBrickRun(x+this.cell/2,y,this.cell+wallThickness,true);
+        if(cell.walls.left) drawBrickRun(x,y+this.cell/2,this.cell+wallThickness,false);
+        if(r===this.rows-1&&cell.walls.bottom) drawBrickRun(x+this.cell/2,y+this.cell,this.cell+wallThickness,true);
+        if(c===this.cols-1&&cell.walls.right) drawBrickRun(x+this.cell,y+this.cell/2,this.cell+wallThickness,false);
+      }
+    }
+  }
+
+  cellCenter(c,r){
+    return {x:this.offsetX+c*this.cell+this.cell/2,y:this.offsetY+r*this.cell+this.cell/2};
+  }
+
+  pickRandomCells(count,excluded){
+    const excludedKeys=new Set(excluded.map(p=>`${p.c},${p.r}`));
+    const all=[];
+    for(let r=0;r<this.rows;r++) for(let c=0;c<this.cols;c++) if(!excludedKeys.has(`${c},${r}`)) all.push({c,r});
+    Phaser.Utils.Array.Shuffle(all);
+    return all.slice(0,count);
+  }
+
+  makeNpc(x,y,texture,id,name,topic,color){
+    const npc=this.npcs.create(x,y,texture).setScale(Math.max(.58,this.cell/92)).setDepth(7).setData({id,name,topic,busy:false});
+    const tween=this.tweens.add({targets:npc,y:y-5,duration:850,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+    const ring=this.add.circle(x,y,31,color,.35).setStrokeStyle(5,color,1).setDepth(6);
+    const ringTween=this.tweens.add({targets:ring,scale:1.18,alpha:.05,duration:900,yoyo:true,repeat:-1});
+    npc.setData('ring',ring);
+    npc.setData('tween',tween);
+    npc.setData('ringTween',ringTween);
+    return npc;
+  }
+
+  createHud(){
+    const hud=this.add.graphics().setDepth(50);
+    hud.fillStyle(0x5b3518,.92); hud.fillRoundedRect(18,14,355,86,22);
+    hud.lineStyle(4,0xffd46b,.95); hud.strokeRoundedRect(18,14,355,86,22);
+    this.uiText=this.add.text(36,27,'',{fontFamily:'Microsoft JhengHei',fontSize:'18px',color:'#ffffff',lineSpacing:7}).setDepth(51);
+    this.updateBadgeUI();
+
+    this.add.text(this.w/2,49,'古今探險・史前稅遊記',{fontFamily:'Microsoft JhengHei',fontSize:'30px',color:'#ffb000',fontStyle:'bold',stroke:'#4b240f',strokeThickness:7}).setOrigin(.5).setDepth(51);
+    this.promptText=this.add.text(this.w/2,this.h-24,'方向鍵 / WASD 移動；碰到守護者會自動出題',{fontFamily:'Microsoft JhengHei',fontSize:'18px',color:'#ffffff',fontStyle:'bold',backgroundColor:'rgba(91,53,24,.92)',padding:{x:18,y:7}}).setOrigin(.5).setDepth(51);
+  }
+
+  update(){
+    if(!this.player || this.questionOpening) return;
+    const speed=190; this.player.setVelocity(0);
+    const left=this.cursors.left.isDown||this.wasd.left.isDown;
+    const right=this.cursors.right.isDown||this.wasd.right.isDown;
+    const up=this.cursors.up.isDown||this.wasd.up.isDown;
+    const down=this.cursors.down.isDown||this.wasd.down.isDown;
+    if(left) this.player.setVelocityX(-speed); else if(right) this.player.setVelocityX(speed);
+    if(up) this.player.setVelocityY(-speed); else if(down) this.player.setVelocityY(speed);
+    if(this.player.body.velocity.length()>0) this.player.body.velocity.normalize().scale(speed);
+  }
+
+  handleNpcTouch(player,npc){
+    const id=npc.getData('id');
+    if(this.questionOpening || npc.getData('busy') || this.game.gameState.badges[id]) return;
+    npc.setData('busy',true);
+    this.questionOpening=true;
+    this.player.setVelocity(0);
+    this.scene.pause();
+    this.scene.launch('QuestionScene',{npcId:id,npcName:npc.getData('name')});
+  }
+
+  completeNpc(id){
+    const npc=this.npcs.getChildren().find(item=>item.getData('id')===id);
+    if(npc){
+      const ring=npc.getData('ring');
+      const tween=npc.getData('tween');
+      const ringTween=npc.getData('ringTween');
+      if(tween) tween.stop();
+      if(ringTween) ringTween.stop();
+      if(ring) ring.destroy();
+      npc.destroy();
+    }
+    this.questionOpening=false;
+    this.updateBadgeUI();
+  }
+
+  cancelNpcQuestion(id){
+    const npc=this.npcs.getChildren().find(item=>item.getData('id')===id);
+    if(npc) npc.setData('busy',false);
+    this.questionOpening=false;
+  }
+
+  updateBadgeUI(){
+    const b=this.game.gameState.badges; const n=[b.elder,b.baby,b.cloud].filter(Boolean).length;
+    this.uiText.setText(`租稅任務進度　${n} / 3\n${b.elder?'🛖':'○'} 房屋　 ${b.baby?'🌳':'○'} 土地　 ${b.cloud?'🚗':'○'} 牌照`);
+  }
+
+  handleExit(){
+      // 正在開啟題目時，不處理出口
+      if(this.questionOpening) return;
+      const b=this.game.gameState.badges;
+      const allCompleted=b.elder && b.baby && b.cloud;
+      // 三關都完成時，不受舊的 exitLocked 狀態影響
+      if(allCompleted){
+        this.exitLocked=true;
+        this.player.setVelocity(0);
+        this.game.finishSession();
+        // 關閉可能殘留的答題場景
+        this.scene.stop('QuestionScene');
+        this.scene.start('EndScene');
+        return;
+      }
+      // 尚未完成三關時，避免重複觸發提示
+      if(this.exitLocked) return;
+      this.exitLocked=true;
+      this.promptText.setText('🔒 請先找到並完成三個租稅關卡！');
+      this.cameras.main.shake(160,.004);
+      this.time.delayedCall(650,()=>{
+        this.exitLocked=false;
+      });
+    }
+}
+
+
+    // ===== scenesQuestionScene.js =====
+class QuestionScene extends Phaser.Scene {
+  constructor(){ super({key:'QuestionScene'}); }
+  init(data){
+    this.npcId=data.npcId;
+    this.npcName=data.npcName;
+    // 答錯重新作答時保留同一題，避免每次重開都換題。
+    this.questionIndex=Number.isInteger(data.questionIndex) ? data.questionIndex : null;
+    // 每次開啟新關卡都要重設，否則第二關之後點答案會被直接忽略
+    this.resultShown=false;
+  }
+
+  create(){
+    const {width:w,height:h}=this.scale; this.w=w; this.h=h;
+    const q=this.getQuestionData(this.npcId,this.questionIndex);
+    this.questionIndex=q.questionIndex;
+
+    // 保存目前題目資料，供答題紀錄與學習分析使用
+    this.currentQuestion=q;
+    // 記錄題目開始顯示的時間
+    this.questionStartedAt=Date.now();
+
+    this.add.rectangle(w/2,h/2,w,h,0x071a20,.78).setInteractive();
+
+    const panel=this.add.graphics();
+    panel.fillStyle(0xfffbef,1);
+    panel.fillRoundedRect(w*.14,h*.08,w*.72,h*.84,34);
+    panel.lineStyle(5,0xffcf5a,1);
+    panel.strokeRoundedRect(w*.14,h*.08,w*.72,h*.84,34);
+
+    this.add.text(w/2,h*.14,`守護者考驗・${this.npcName}`,{
+      fontFamily:'Microsoft JhengHei',fontSize:'30px',color:'#24505a',fontStyle:'bold'
+    }).setOrigin(.5);
+
+    this.add.text(w/2,h*.245,q.question,{
+      fontFamily:'Microsoft JhengHei',fontSize:'30px',color:'#263b40',fontStyle:'bold',
+      align:'center',wordWrap:{width:w*.61},lineSpacing:10
+    }).setOrigin(.5);
+
+    const answerButtons=[];
+
+    q.options.forEach((opt,i)=>{
+      const y=h*(.405+i*.125);
+      const box=this.add.rectangle(w/2,y,w*.58,84,0xffffff,1)
+        .setStrokeStyle(3,0x84b8ad)
+        .setInteractive({useHandCursor:true});
+
+      const label=this.add.text(w*.25,y,`${String.fromCharCode(65+i)}　${opt}`,{
+        fontFamily:'Microsoft JhengHei',fontSize:'23px',color:'#29474d',fontStyle:'bold',
+        wordWrap:{width:w*.49}
+      }).setOrigin(0,.5).setInteractive({useHandCursor:true});
+
+      const choose=()=>this.checkAnswer(i,q.answer,q.explanation);
+      box.on('pointerdown',choose);
+      label.on('pointerdown',choose);
+      box.on('pointerover',()=>{
+        box.setFillStyle(0xfff2bd);
+        box.setStrokeStyle(4,0xffb703);
+      });
+      box.on('pointerout',()=>{
+        box.setFillStyle(0xffffff);
+        box.setStrokeStyle(3,0x84b8ad);
+      });
+
+      answerButtons.push({choose});
+    });
+
+    this.add.text(w/2,h*.86,'滑鼠點選，或按 A～D／1～4 作答；Esc 返回迷宮',{
+      fontFamily:'Microsoft JhengHei',fontSize:'19px',color:'#61777b'
+    }).setOrigin(.5);
+
+    // A、B、C、D 與 1、2、3、4 可直接作答
+    const answerKeyMap={
+      A:0,B:1,C:2,D:3,
+      ONE:0,TWO:1,THREE:2,FOUR:3,
+      NUMPAD_ONE:0,NUMPAD_TWO:1,NUMPAD_THREE:2,NUMPAD_FOUR:3
+    };
+
+    Object.entries(answerKeyMap).forEach(([keyName,index])=>{
+      if(index>=q.options.length) return;
+      const keyCode=Phaser.Input.Keyboard.KeyCodes[keyName];
+      if(typeof keyCode!=='number') return;
+      const key=this.input.keyboard.addKey(keyCode);
+      key.once('down',()=>{
+        if(!this.resultShown) answerButtons[index].choose();
+      });
+    });
+
+    // Esc：取消本題並回到迷宮
+    const escKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    escKey.once('down',()=>{
+      if(this.resultShown) return;
+      const map=this.scene.get('MapScene');
+      map.cancelNpcQuestion(this.npcId);
+      this.scene.resume('MapScene');
+      this.scene.stop('QuestionScene');
+    });
+  }
+  getQuestionData(id,requestedIndex=null){
+    // 三個關卡各有 3 題，共 9 題；進入關卡時隨機抽出其中 1 題。
+    const questionBank={
+      elder:[
+        {
+          question:'房屋稅公益出租人出租使用的房屋，適用稅率是多少？',
+          options:['1.2%','2%','3%','4.8%'],
+          answer:0,
+          explanation:'符合公益出租人出租使用條件的房屋，可適用 1.2% 稅率。'
+        },
+        {
+          question:'房屋同時符合自住及全國單一自住房屋條件時，最低稅率是多少？',
+          options:['0.6%','1%','1.2%','2%'],
+          answer:1,
+          explanation:'全國單一自住房屋符合規定時，可適用 1% 稅率。'
+        },
+        {
+          question:'房屋作住家使用，但未符合自住要件，通常屬於哪一類？',
+          options:['自住房屋','非自住住家用房屋','營業用房屋','免稅房屋'],
+          answer:1,
+          explanation:'未符合自住要件的住家用房屋，會按非自住住家用房屋規定課稅。'
+        }
+      ],
+      baby:[
+        {
+          question:'地價稅自用住宅用地，應在幾月幾日前提出申請，才能自當年適用？',
+          options:['8月31日','9月22日','10月31日','不用申請'],
+          answer:1,
+          explanation:'原則上須在地價稅開徵 40 日前，也就是 9 月22日前提出申請。'
+        },
+        {
+          question:'一般用地地價稅基本稅率與自用住宅用地稅率相比，約為幾倍？',
+          options:['2倍','3倍','5倍','10倍'],
+          answer:2,
+          explanation:'一般用地基本稅率為千分之10，自用住宅用地稅率為千分之2，約差5倍。'
+        },
+        {
+          question:'申請地價稅自用住宅用地稅率，下列哪一項是必要條件？',
+          options:['房屋必須出租','土地上房屋不得營業或出租','本人一定要是公司負責人','不需要設籍'],
+          answer:1,
+          explanation:'土地上的房屋應供自住使用，不能出租或作營業使用，並須符合設籍等條件。'
+        }
+      ],
+      cloud:[
+        {
+          question:'身心障礙者沒有駕照時，供其使用的車輛由二親等內親屬所有，哪個地址須符合規定？',
+          options:['車主公司地址','監理機關登記的住居所地址或車籍地址','任意通訊地址','工作地地址'],
+          answer:1,
+          explanation:'監理機關登記的住居所地址或車籍地址，須與身心障礙者戶籍地址相同。'
+        },
+        {
+          question:'使用牌照稅通常是針對下列哪一種交通工具課徵？',
+          options:['腳踏車','汽車或機車等依法領牌照的交通工具','滑板車','嬰兒車'],
+          answer:1,
+          explanation:'使用牌照稅主要針對依法領有牌照的交通工具課徵。'
+        },
+        {
+          question:'車輛已報廢但未向監理機關辦妥異動，牌照稅可能會如何？',
+          options:['自動停止課稅','仍可能繼續課徵','永久免稅','改課房屋稅'],
+          answer:1,
+          explanation:'車輛異動應向監理機關辦妥登記，否則稅籍資料未更新時仍可能繼續課徵。'
+        }
+      ]
+    };
+
+    const questions=questionBank[id];
+    if(!questions) {
+      console.error('找不到題庫：',id);
+      return {
+        question:'題庫載入失敗，請返回重試。',
+        options:['確定'],
+        answer:0,
+        explanation:'請檢查 NPC 關卡 ID 與題庫分類名稱。',
+        questionIndex:0
+      };
+    }
+
+    const index=requestedIndex!==null && questions[requestedIndex]
+      ? requestedIndex
+      : Phaser.Math.Between(0,questions.length-1);
+
+    return {...questions[index],questionIndex:index};
+  }
+
+  checkAnswer(selected,correct,explanation){
+      if(this.resultShown) return;
+      this.resultShown=true;
+      const success=selected===correct;
+      // 玩家選擇的答案文字
+      const selectedAnswer=this.currentQuestion.options[selected];
+      // 正確答案文字
+      const correctAnswer=this.currentQuestion.options[correct];
+      // 計算本次作答時間，單位為秒
+      const responseSeconds=Math.max(
+        1,
+        Math.round((Date.now()-this.questionStartedAt)/1000)
+      );
+      // 儲存完整答題紀錄
+      this.game.recordAnswer({
+        npcId:this.npcId,
+        npcName:this.npcName,
+        questionIndex:this.questionIndex,
+        questionNumber:this.questionIndex+1,
+        question:this.currentQuestion.question,
+        selectedIndex:selected,
+        selectedAnswer:selectedAnswer,
+        correctIndex:correct,
+        correctAnswer:correctAnswer,
+        isCorrect:success,
+        responseSeconds:responseSeconds
+      });
+    
+      if(success){
+        this.game.gameState.badges[this.npcId]=true;
+        this.showResult(
+          true,
+          '答對了！',
+          '這個關卡完成，守護者將從迷宮消失！',
+          explanation
+        );
+      }else{
+        this.showResult(
+          false,
+          '再想一想',
+          '這個答案還不對，再討論一次吧！',
+          ''
+        );
+      }
+    }
+
+  showResult(success,title,subtitle,explanation){
+    const w=this.w,h=this.h;
+
+    this.add.rectangle(w/2,h/2,w,h,0x071a20,.82)
+      .setDepth(20)
+      .setInteractive();
+
+    const card=this.add.graphics().setDepth(21);
+    card.fillStyle(success ? 0xeafaf0 : 0xfff0f0,1);
+    card.fillRoundedRect(w*.27,h*.24,w*.46,h*.5,32);
+    card.lineStyle(5,success ? 0x4caf78 : 0xef7c8e,1);
+    card.strokeRoundedRect(w*.27,h*.24,w*.46,h*.5,32);
+
+    this.add.text(w/2,h*.33,success ? '🎉' : '💡',{fontSize:'62px'})
+      .setOrigin(.5).setDepth(22);
+
+    this.add.text(w/2,h*.43,title,{
+      fontFamily:'Microsoft JhengHei',fontSize:'36px',color:'#27454a',fontStyle:'bold'
+    }).setOrigin(.5).setDepth(22);
+
+    this.add.text(w/2,h*.51,subtitle,{
+      fontFamily:'Microsoft JhengHei',fontSize:'22px',color:'#4b6266'
+    }).setOrigin(.5).setDepth(22);
+
+    if(explanation){
+      this.add.text(w/2,h*.585,explanation,{
+        fontFamily:'Microsoft JhengHei',fontSize:'19px',color:'#4b6266',align:'center',
+        wordWrap:{width:w*.36}
+      }).setOrigin(.5).setDepth(22);
+    }
+
+    const btn=this.add.text(
+      w/2,
+      h*.68,
+      success ? '繼續走迷宮（Enter）' : '重新作答（Enter）',
+      {
+        fontFamily:'Microsoft JhengHei',fontSize:'23px',color:'#263238',fontStyle:'bold',
+        backgroundColor:success ? '#ffd166' : '#ffb5c0',padding:{x:32,y:14}
+      }
+    ).setOrigin(.5).setDepth(22).setInteractive({useHandCursor:true});
+
+    let actionTriggered=false;
+
+    const continueGame=()=>{
+      if(actionTriggered) return;
+      actionTriggered=true;
+
+      const map=this.scene.get('MapScene');
+      if(success){
+        map.completeNpc(this.npcId);
+        this.scene.resume('MapScene');
+        this.scene.stop('QuestionScene');
+      }else{
+        this.scene.restart({
+          npcId:this.npcId,
+          npcName:this.npcName,
+          questionIndex:this.questionIndex
+        });
+      }
+    };
+
+    btn.on('pointerdown',continueGame);
+
+    const enterKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    enterKey.once('down',continueGame);
+  }
+}
+
+    // ===== scenesEndScene.js =====
+class EndScene extends Phaser.Scene {
+  constructor(){ super({key:'EndScene'}); }
+  create(){
+    const {width:w,height:h}=this.scale;
+    const bg=this.add.graphics(); bg.fillGradientStyle(0x173f46,0x173f46,0x64b98a,0xf4d77c,1); bg.fillRect(0,0,w,h);
+    for(let i=0;i<80;i++){
+      const p=this.add.circle(Phaser.Math.Between(40,w-40),Phaser.Math.Between(20,h-40),Phaser.Math.Between(3,8),Phaser.Utils.Array.GetRandom([0xffd166,0x66d9a6,0x64b5f6,0xff8a9a]),.8);
+      this.tweens.add({targets:p,y:p.y+Phaser.Math.Between(50,160),alpha:0,duration:Phaser.Math.Between(1200,2600),delay:Phaser.Math.Between(0,1000),repeat:-1});
+    }
+    const panel=this.add.graphics(); panel.fillStyle(0x102f36,.9); panel.fillRoundedRect(w*.16,h*.08,w*.68,h*.82,40); panel.lineStyle(5,0xffe49a,.95); panel.strokeRoundedRect(w*.16,h*.08,w*.68,h*.82,40);
+    this.add.image(w/2,h*.23,'temple_door').setScale(1.3);
+    this.add.text(w/2,h*.39,'完成史前租稅闖關!',{fontFamily:'Microsoft JhengHei',fontSize:'52px',color:'#fff2bd',fontStyle:'bold',stroke:'#5a3a18',strokeThickness:7}).setOrigin(.5);
+    this.add.text(w/2,h*.49,'恭喜大朋友、小朋友完成三項租稅任務',{fontFamily:'Microsoft JhengHei',fontSize:'27px',color:'#ffffff'}).setOrigin(.5);
+    this.add.text(w/2,h*.59,'🏆 稅務小達人 🏆',{fontFamily:'Microsoft JhengHei',fontSize:'38px',color:'#74e0aa',fontStyle:'bold'}).setOrigin(.5);
+    this.add.text(w/2,h*.67,'🛖 房屋稅　　🌳地價稅　　🚗牌照稅',{fontFamily:'Microsoft JhengHei',fontSize:'23px',color:'#ffffff'}).setOrigin(.5);
+    const btn=this.add.text(w/2,h*.79,'再玩一次  ↻',{fontFamily:'Microsoft JhengHei',fontSize:'25px',color:'#263238',fontStyle:'bold',backgroundColor:'#ffd166',padding:{x:38,y:16}}).setOrigin(.5).setInteractive({useHandCursor:true});
+    btn.on('pointerover',()=>btn.setScale(1.05)); btn.on('pointerout',()=>btn.setScale(1));
+    btn.on('pointerdown',()=>{
+      this.game.gameState.badges={elder:false,baby:false,cloud:false};
+      this.game.gameState.currentSession=null;
+      // 確保上一輪可能殘留或暫停的遊戲場景全部關閉。
+      this.scene.stop('QuestionScene');
+      this.scene.stop('MapScene');
+      this.scene.start('MenuScene');
+    });
+  }
+}
+
+
+    // ===== game.js =====
+const config = {
+  type: Phaser.AUTO,
+  parent: 'game-container',
+  width: 1600,
+  height: 1000,
+  backgroundColor: '#173f46',
+  antialias: true,
+  pixelArt: false,
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: 1600,
+    height: 1000
+  },
+  physics: {
+    default: 'arcade',
+    arcade: { gravity: { y: 0 }, debug: false }
+  },
+  scene: [BootScene, MenuScene, MapScene, QuestionScene, EndScene]
+};
+
+const game = new Phaser.Game(config);
+
+const STORAGE_KEY = 'prehistoricTaxGameStatsV2';
+
+game.gameState = {
+  badges: { elder: false, baby: false, cloud: false },
+  currentSession: null
+};
+
+game.getStats = function () {
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (data && Array.isArray(data.sessions)) return data;
+  } catch (error) {
+    console.warn('讀取統計資料失敗：', error);
+  }
+  return { sessions: [] };
+};
+
+game.saveStats = function (stats) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+    return true;
+  } catch (error) {
+    console.warn('儲存統計資料失敗：', error);
+    return false;
+  }
+};
+
+game.clearStats = function () {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    console.warn('清空統計資料失敗：', error);
+  }
+  game.gameState.currentSession = null;
+  game.gameState.badges = { elder: false, baby: false, cloud: false };
+};
+
+game.startSession = function () {
+  const now = new Date();
+  game.gameState.currentSession = {
+    id: `${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
+    startedAt: now.toISOString(),
+    firstAnsweredAt: '',
+    completedAt: '',
+    answeredQuestions: [],
+    // 儲存每一次作答的完整紀錄
+    answerRecords: [],
+    correctAnswers: 0,
+    attempts: 0,
+    completed: false,
+    saved: false
+  };
+
+  // 一按「開始遊戲」就先建立並保存新的一輪；即使尚未答題，重新整理後資料仍存在。
+  const stats = game.getStats();
+    stats.sessions.push({ ...game.gameState.currentSession });
+    game.saveStats(stats);
+  };
+  
+  game.recordAnswer = function (answerData) {
+    const session = game.gameState.currentSession;
+    if (!session) return;
+    // 第一次答題時間
+    if (!session.firstAnsweredAt) {
+      session.firstAnsweredAt = new Date().toISOString();
+    }
+    // 舊資料相容處理
+    if (!Array.isArray(session.answerRecords)) {
+      session.answerRecords = [];
+    }
+    if (!Array.isArray(session.answeredQuestions)) {
+      session.answeredQuestions = [];
+    }
+    session.attempts += 1;
+    // 計算同一位玩家在同一題已經回答幾次
+    const previousAttempts = session.answerRecords.filter(record =>
+      record.npcId === answerData.npcId &&
+      record.questionIndex === answerData.questionIndex
+    ).length;
+    const attemptNumber = previousAttempts + 1;
+    // 判斷是否第一次作答就答對
+    const isFirstAttemptCorrect =
+      attemptNumber === 1 && answerData.isCorrect;
+    // 建立單次作答紀錄
+    const answerRecord = {
+      answeredAt: new Date().toISOString(),
+      npcId: answerData.npcId,
+      npcName: answerData.npcName,
+      questionIndex: answerData.questionIndex,
+      questionNumber: answerData.questionNumber,
+      question: answerData.question,
+      selectedIndex: answerData.selectedIndex,
+      selectedAnswer: answerData.selectedAnswer,
+      correctIndex: answerData.correctIndex,
+      correctAnswer: answerData.correctAnswer,
+      isCorrect: answerData.isCorrect,
+      attemptNumber: attemptNumber,
+      isFirstAttemptCorrect: isFirstAttemptCorrect,
+      responseSeconds: answerData.responseSeconds
+    };
+    session.answerRecords.push(answerRecord);
+    if (answerData.isCorrect) {
+      session.correctAnswers += 1;
+      if (!session.answeredQuestions.includes(answerData.npcId)) {
+        session.answeredQuestions.push(answerData.npcId);
+      }
+    }
+  
+    const stats = game.getStats();
+    const index = stats.sessions.findIndex(
+      item => item.id === session.id
+    );
+    // 深層複製，確保 answerRecords 完整存入 localStorage
+    const snapshot = JSON.parse(JSON.stringify(session));
+    if (index >= 0) {
+      stats.sessions[index] = snapshot;
+    } else {
+      stats.sessions.push(snapshot);
+    }
+    game.saveStats(stats);
+  };
+
+game.finishSession = function () {
+  const session = game.gameState.currentSession;
+  if (!session || session.saved) return;
+  session.completed = true;
+  session.completedAt = new Date().toISOString();
+  session.saved = true;
+  const stats = game.getStats();
+  const index = stats.sessions.findIndex(item => item.id === session.id);
+  const snapshot = { ...session };
+  if (index >= 0) stats.sessions[index] = snapshot;
+  else stats.sessions.push(snapshot);
+  game.saveStats(stats);
+};
+
+game.exportStatsToExcel = function () {
+  const stats = game.getStats();
+  const totalSessions = stats.sessions.length;
+  const answered = stats.sessions.filter(
+    session => session.firstAnsweredAt
+  ).length;
+  const completed = stats.sessions.filter(
+    session => session.completed
+  ).length;
+  const attempts = stats.sessions.reduce(
+    (sum, session) => sum + (session.attempts || 0),
+    0
+  );
+  const totalCorrect = stats.sessions.reduce(
+    (sum, session) => sum + (session.correctAnswers || 0),
+    0
+  );
+  const completionRate = totalSessions > 0
+    ? `${Math.round((completed / totalSessions) * 100)}%`
+    : '0%';
+  const answerRate = answered > 0
+    ? `${Math.round((completed / answered) * 100)}%`
+    : '0%';
+  // =========================
+  // 工作表1：統計摘要
+  // =========================
+  const summary = [
+    { 項目: '開始遊戲人數', 數值: totalSessions },
+    { 項目: '至少作答一題人數',數值: answered },
+    { 項目: '完成三關人數',數值: completed },    
+    { 項目: '完成率（以開始遊戲人數計算）',數值: completionRate },   
+    { 項目: '完成率（以答題人數計算）', 數值: answerRate},
+    { 項目: '總作答次數', 數值: attempts},
+    { 項目: '總答對次數', 數值: totalCorrect },
+    { 項目: '匯出時間', 數值: new Date().toLocaleString('zh-TW')}
+  ];
+  // =========================
+  // 工作表2：玩家闖關紀錄
+  // =========================
+  const playerRecords = stats.sessions.map((session, index) => {
+    const startTime = session.startedAt
+      ? new Date(session.startedAt)
+      : null;
+    const completedTime = session.completedAt
+      ? new Date(session.completedAt)
+      : null;
+    let gameSeconds = '';
+    if (startTime && completedTime) {
+      gameSeconds = Math.max(
+        0,
+        Math.round((completedTime - startTime) / 1000)
+      );
+    }
+    const sessionAttempts = session.attempts || 0;
+    const sessionCorrect = session.correctAnswers || 0;
+    const accuracy = sessionAttempts > 0
+      ? `${Math.round((sessionCorrect / sessionAttempts) * 100)}%`
+      : '0%';
+    return {
+      玩家編號: index + 1,
+      工作階段ID: session.id || '',
+      開始時間: session.startedAt
+        ? new Date(session.startedAt).toLocaleString('zh-TW')
+        : '',
+      首次答題時間: session.firstAnsweredAt
+        ? new Date(session.firstAnsweredAt).toLocaleString('zh-TW')
+        : '',
+      完成時間: session.completedAt
+        ? new Date(session.completedAt).toLocaleString('zh-TW')
+        : '',
+      是否開始答題: session.firstAnsweredAt ? '是' : '否',
+      是否完成三關: session.completed ? '是' : '否',
+      完成關卡數: Array.isArray(session.answeredQuestions)
+        ? session.answeredQuestions.length
+        : 0,
+      答對次數: sessionCorrect,
+      作答次數: sessionAttempts,
+      整體答對率: accuracy,
+      完成遊戲秒數: gameSeconds
+    };
+  });
+
+  // =========================
+  // 工作表3：逐題作答紀錄
+  // =========================
+  const allAnswerRecords = [];
+  stats.sessions.forEach((session, sessionIndex) => {
+    const records = Array.isArray(session.answerRecords)
+      ? session.answerRecords
+      : [];
+    records.forEach((record, recordIndex) => {
+      allAnswerRecords.push({
+        玩家編號: sessionIndex + 1,
+        工作階段ID: session.id || '',
+        玩家作答順序: recordIndex + 1,
+        作答時間: record.answeredAt
+          ? new Date(record.answeredAt).toLocaleString('zh-TW')
+          : '',
+        關卡代碼: record.npcId || '',
+        關卡名稱: record.npcName || '',
+        題目編號: record.questionNumber || '',
+        題目內容: record.question || '',
+        玩家選擇代碼:
+          Number.isInteger(record.selectedIndex)
+            ? String.fromCharCode(65 + record.selectedIndex)
+            : '',
+        玩家選擇答案: record.selectedAnswer || '',
+        正確答案代碼:
+          Number.isInteger(record.correctIndex)
+            ? String.fromCharCode(65 + record.correctIndex)
+            : '',
+        正確答案: record.correctAnswer || '',
+        答題結果: record.isCorrect ? '答對' : '答錯',
+        第幾次作答: record.attemptNumber || 1,
+        是否首次作答即答對:
+          record.isFirstAttemptCorrect ? '是' : '否',
+        作答秒數: record.responseSeconds || ''
+      });
+    });
+  });
+
+  // =========================
+  // 工作表4：題目分析
+  // =========================
+  const questionMap = {};
+  allAnswerRecords.forEach(record => {
+    const key = `${record.關卡代碼}_${record.題目編號}`;
+    if (!questionMap[key]) {
+      questionMap[key] = {
+        關卡名稱: record.關卡名稱,
+        題目編號: record.題目編號,
+        題目內容: record.題目內容,
+        正確答案: record.正確答案,
+        總作答次數: 0,
+        答對次數: 0,
+        答錯次數: 0,
+        首次作答人次: 0,
+        首次答對人次: 0,
+        總作答秒數: 0,
+        有效時間筆數: 0,
+        錯誤選項統計: {}
+      };
+    }
+
+    const item = questionMap[key];
+    item.總作答次數 += 1;
+    if (record.答題結果 === '答對') {
+      item.答對次數 += 1;
+    } else {
+      item.答錯次數 += 1;
+      const wrongAnswer = record.玩家選擇答案 || '未記錄';
+      item.錯誤選項統計[wrongAnswer] =
+        (item.錯誤選項統計[wrongAnswer] || 0) + 1;
+    }
+    if (record.第幾次作答 === 1) {
+      item.首次作答人次 += 1;
+      if (record.答題結果 === '答對') {
+        item.首次答對人次 += 1;
+      }
+    }
+    const seconds = Number(record.作答秒數);
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      item.總作答秒數 += seconds;
+      item.有效時間筆數 += 1;
+    }
+  });
+
+  const questionAnalysis = Object.values(questionMap).map(item => {
+    const overallAccuracy = item.總作答次數 > 0
+      ? `${Math.round(
+          (item.答對次數 / item.總作答次數) * 100
+        )}%`
+      : '0%';
+
+    const firstAccuracy = item.首次作答人次 > 0
+      ? `${Math.round(
+          (item.首次答對人次 / item.首次作答人次) * 100
+        )}%`
+      : '0%';
+
+    const averageSeconds = item.有效時間筆數 > 0
+      ? Math.round(
+          (item.總作答秒數 / item.有效時間筆數) * 10
+        ) / 10
+      : '';
+
+    const wrongOptions = Object.entries(item.錯誤選項統計)
+      .sort((a, b) => b[1] - a[1]);
+
+    const mostCommonWrongAnswer = wrongOptions.length > 0
+      ? wrongOptions[0][0]
+      : '';
+
+    const mostCommonWrongCount = wrongOptions.length > 0
+      ? wrongOptions[0][1]
+      : 0;
+
+    return {
+      關卡名稱: item.關卡名稱,
+      題目編號: item.題目編號,
+      題目內容: item.題目內容,
+      正確答案: item.正確答案,
+      總作答次數: item.總作答次數,
+      答對次數: item.答對次數,
+      答錯次數: item.答錯次數,
+      整體答對率: overallAccuracy,
+      首次作答人次: item.首次作答人次,
+      首次答對人次: item.首次答對人次,
+      首次答對率: firstAccuracy,
+      平均作答秒數: averageSeconds,
+      最常誤選答案: mostCommonWrongAnswer,
+      最常誤選次數: mostCommonWrongCount
+    };
+  });
+
+  // =========================
+  // 工作表5：各稅目分析
+  // =========================
+  const topicMap = {};
+  allAnswerRecords.forEach(record => {
+    const topic = record.關卡名稱 || '未分類';
+    if (!topicMap[topic]) {
+      topicMap[topic] = {
+        關卡名稱: topic,
+        總作答次數: 0,
+        答對次數: 0,
+        答錯次數: 0,
+        首次作答人次: 0,
+        首次答對人次: 0,
+        總作答秒數: 0,
+        有效時間筆數: 0
+      };
+    }
+
+    const item = topicMap[topic];
+    item.總作答次數 += 1;
+    if (record.答題結果 === '答對') {
+      item.答對次數 += 1;
+    } else {
+      item.答錯次數 += 1;
+    }
+    if (record.第幾次作答 === 1) {
+      item.首次作答人次 += 1;
+      if (record.答題結果 === '答對') {
+        item.首次答對人次 += 1;
+      }
+    }
+
+    const seconds = Number(record.作答秒數);
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      item.總作答秒數 += seconds;
+      item.有效時間筆數 += 1;
+    }
+  });
+
+  const topicAnalysis = Object.values(topicMap).map(item => {
+    const accuracy = item.總作答次數 > 0
+      ? `${Math.round(
+          (item.答對次數 / item.總作答次數) * 100
+        )}%`
+      : '0%';
+
+    const firstAccuracy = item.首次作答人次 > 0
+      ? `${Math.round(
+          (item.首次答對人次 / item.首次作答人次) * 100
+        )}%`
+      : '0%';
+
+    const averageSeconds = item.有效時間筆數 > 0
+      ? Math.round(
+          (item.總作答秒數 / item.有效時間筆數) * 10
+        ) / 10
+      : '';
+
+    return {
+      關卡名稱: item.關卡名稱,
+      總作答次數: item.總作答次數,
+      答對次數: item.答對次數,
+      答錯次數: item.答錯次數,
+      整體答對率: accuracy,
+      首次作答人次: item.首次作答人次,
+      首次答對人次: item.首次答對人次,
+      首次答對率: firstAccuracy,
+      平均作答秒數: averageSeconds
+    };
+  });
+
+  // =========================
+  // 產生 Excel
+  // =========================
+
+  if (!window.XLSX) {
+    console.error('Excel 匯出元件尚未載入');
+    return false;
+  }
+
+  const workbook = XLSX.utils.book_new();
+  const summarySheet =
+    XLSX.utils.json_to_sheet(summary);
+  const playerSheet =
+    XLSX.utils.json_to_sheet(playerRecords);
+  const answerSheet =
+    XLSX.utils.json_to_sheet(allAnswerRecords);
+  const questionSheet =
+    XLSX.utils.json_to_sheet(questionAnalysis);
+  const topicSheet =
+    XLSX.utils.json_to_sheet(topicAnalysis);
+  // 設定欄寬
+  summarySheet['!cols'] = [
+    { wch: 32 },
+    { wch: 22 }
+  ];
+
+  playerSheet['!cols'] = [
+    { wch: 10 },
+    { wch: 28 },
+    { wch: 22 },
+    { wch: 22 },
+    { wch: 22 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 14 },
+    { wch: 16 }
+  ];
+
+  answerSheet['!cols'] = [
+    { wch: 10 },
+    { wch: 28 },
+    { wch: 14 },
+    { wch: 22 },
+    { wch: 14 },
+    { wch: 18 },
+    { wch: 12 },
+    { wch: 55 },
+    { wch: 16 },
+    { wch: 30 },
+    { wch: 16 },
+    { wch: 30 },
+    { wch: 12 },
+    { wch: 14 },
+    { wch: 20 },
+    { wch: 12 }
+  ];
+
+  questionSheet['!cols'] = [
+    { wch: 18 },
+    { wch: 12 },
+    { wch: 55 },
+    { wch: 30 },
+    { wch: 14 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 14 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 18 },
+    { wch: 30 },
+    { wch: 16 }
+  ];
+
+  topicSheet['!cols'] = [
+    { wch: 20 },
+    { wch: 14 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 14 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 18 }
+  ];
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    summarySheet,
+    '統計摘要'
+  );
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    playerSheet,
+    '玩家闖關紀錄'
+  );
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    answerSheet,
+    '逐題作答紀錄'
+  );
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    questionSheet,
+    '題目分析'
+  );
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    topicSheet,
+    '各稅目分析'
+  );
+
+  const dateText = new Date()
+    .toISOString()
+    .slice(0, 10);
+
+  XLSX.writeFile(
+    workbook,
+    `史前稅遊記_學習分析_${dateText}.xlsx`
+  );
+
+  return true;
+};
+
+window.addEventListener('resize', () => game.scale.refresh());
+
+
+  </script>
+</body>
+</html>
